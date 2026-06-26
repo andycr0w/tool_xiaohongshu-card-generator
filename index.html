@@ -158,9 +158,11 @@
 
     .workspace {
       display: grid;
-      grid-template-columns: minmax(320px, 460px) minmax(420px, 1fr) minmax(250px, 340px);
-      gap: 14px;
-      align-items: start;
+      grid-template-columns: minmax(320px, 430px) minmax(440px, 1fr) minmax(310px, 390px);
+      gap: 16px;
+      align-items: stretch;
+      min-height: calc(100vh - 150px);
+      height: calc(100vh - 150px);
     }
 
     .panel,
@@ -170,11 +172,24 @@
       border-radius: var(--radius);
       background: rgba(255, 253, 249, 0.94);
       box-shadow: var(--shadow);
+      height: 100%;
+      min-height: 0;
     }
 
     .panel,
     .side-panel {
-      padding: 14px;
+      padding: 16px;
+    }
+
+    .panel {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+      overflow: hidden;
+    }
+
+    .side-panel {
+      overflow: auto;
+      scrollbar-width: thin;
     }
 
     .panel-title {
@@ -199,6 +214,12 @@
 
     .field {
       margin-bottom: 12px;
+    }
+
+    .body-field {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
     }
 
     .field label,
@@ -227,11 +248,18 @@
       padding: 8px 10px;
     }
 
+    .field input[type="color"] {
+      height: 40px;
+      padding: 4px;
+    }
+
     .field textarea {
-      min-height: 260px;
-      resize: vertical;
+      min-height: 0;
+      height: 100%;
+      resize: none;
       padding: 10px;
       line-height: 1.62;
+      overflow: auto;
     }
 
     .field input:focus,
@@ -241,20 +269,38 @@
       box-shadow: 0 0 0 3px rgba(255, 63, 99, 0.13);
     }
 
-    .segmented,
+    .ratio-grid,
     .swatches,
     .template-grid {
       display: grid;
       gap: 7px;
-      margin-bottom: 14px;
     }
 
-    .segmented {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+    .style-section {
+      padding: 12px;
+      border: 1px solid rgba(201, 184, 166, 0.72);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.42);
+      margin-bottom: 12px;
+    }
+
+    .style-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .style-section .group-label {
+      margin-bottom: 8px;
+    }
+
+    .ratio-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .template-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-height: 236px;
+      overflow: auto;
+      padding-right: 2px;
     }
 
     .chip,
@@ -269,8 +315,77 @@
       font-weight: 700;
     }
 
+    .ratio-card {
+      display: grid;
+      min-height: 74px;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+      padding: 9px;
+      text-align: left;
+    }
+
+    .ratio-mark {
+      display: block;
+      width: 24px;
+      height: 32px;
+      border: 2px solid currentColor;
+      border-radius: 4px;
+      opacity: 0.72;
+      justify-self: center;
+    }
+
+    .ratio-card[data-ratio="4:5"] .ratio-mark {
+      height: 30px;
+    }
+
+    .ratio-card[data-ratio="1:1"] .ratio-mark {
+      height: 24px;
+    }
+
+    .ratio-card[data-ratio="2:3"] .ratio-mark {
+      height: 36px;
+    }
+
+    .ratio-card[data-ratio="9:16"] .ratio-mark {
+      width: 22px;
+      height: 39px;
+    }
+
+    .ratio-card[data-ratio="16:9"] .ratio-mark {
+      width: 34px;
+      height: 20px;
+    }
+
+    .ratio-card[data-ratio="long"] .ratio-mark {
+      width: 20px;
+      height: 44px;
+    }
+
+    .ratio-name,
+    .ratio-size {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ratio-name {
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .ratio-size {
+      margin-top: 3px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
     .chip[aria-pressed="true"],
-    .template-button[aria-pressed="true"] {
+    .template-button[aria-pressed="true"],
+    .ratio-card[aria-pressed="true"] {
       border-color: var(--red);
       background: #fff0f3;
       color: var(--red-deep);
@@ -291,6 +406,43 @@
 
     .swatches {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .control-grid,
+    .color-grid,
+    .toggle-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .control-grid,
+    .color-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .toggle-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .toggle {
+      display: flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #fffefa;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .toggle input {
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      accent-color: var(--red);
     }
 
     .swatch {
@@ -322,7 +474,11 @@
       grid-template-columns: 1fr 42px;
       gap: 10px;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+    }
+
+    .range-row:last-child {
+      margin-bottom: 0;
     }
 
     input[type="range"] {
@@ -332,9 +488,10 @@
 
     .preview-stage {
       display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
       justify-items: center;
       gap: 10px;
-      min-height: 650px;
+      min-height: 0;
       padding: 20px;
       background:
         linear-gradient(90deg, rgba(32, 33, 36, 0.05) 1px, transparent 1px),
@@ -346,13 +503,18 @@
     .canvas-wrap {
       display: grid;
       width: min(100%, 540px);
-      min-height: 560px;
+      min-height: 0;
+      height: 100%;
       place-items: center;
+      overflow: auto;
+      padding: 8px;
     }
 
     canvas {
       display: block;
-      width: min(100%, 420px);
+      width: auto;
+      max-width: min(100%, 460px);
+      max-height: min(72vh, 720px);
       height: auto;
       border-radius: 8px;
       background: white;
@@ -382,24 +544,6 @@
       color: white;
     }
 
-    .note-list {
-      display: grid;
-      gap: 8px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .note-list li {
-      border-left: 3px solid var(--red);
-      padding: 8px 10px;
-      border-radius: 6px;
-      background: #fff5f7;
-      color: #473239;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
     .toast {
       position: fixed;
       right: 18px;
@@ -425,16 +569,28 @@
 
     @media (max-width: 1180px) {
       .workspace {
-        grid-template-columns: minmax(310px, 440px) minmax(360px, 1fr);
+        grid-template-columns: minmax(310px, 430px) minmax(360px, 1fr);
+        min-height: auto;
+        height: auto;
+        align-items: start;
       }
 
       .side-panel {
         grid-column: 1 / -1;
       }
 
-      .side-panel .note-list {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+      .side-panel {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        height: auto;
+        overflow: visible;
       }
+
+      .side-panel .panel-title {
+        grid-column: 1 / -1;
+      }
+
     }
 
     @media (max-width: 820px) {
@@ -446,6 +602,23 @@
       .topbar,
       .workspace {
         grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .preview-stage,
+      .side-panel {
+        height: auto;
+      }
+
+      .panel {
+        display: block;
+        overflow: visible;
+      }
+
+      .field textarea {
+        min-height: 260px;
+        height: auto;
+        resize: vertical;
       }
 
       .top-actions {
@@ -461,7 +634,14 @@
         min-height: auto;
       }
 
-      .side-panel .note-list {
+      .side-panel {
+        display: block;
+      }
+
+      .ratio-grid,
+      .template-grid,
+      .color-grid,
+      .control-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -487,6 +667,7 @@
       <div class="top-actions">
         <button class="button ghost" id="sampleButton" type="button">示例文案</button>
         <button class="button ghost" id="copyTextButton" type="button">复制标题正文</button>
+        <button class="button ghost" id="downloadAllButton" type="button">下载全部图</button>
         <button class="button primary" id="downloadButton" type="button">下载当前图</button>
       </div>
     </header>
@@ -504,6 +685,11 @@
         </div>
 
         <div class="field">
+          <label for="subtitleInput">副标题</label>
+          <input id="subtitleInput" type="text" autocomplete="off" maxlength="38" value="把经验讲成愿意停留的图片">
+        </div>
+
+        <div class="field body-field">
           <label for="bodyInput">正文</label>
           <textarea id="bodyInput" spellcheck="false">把复杂经验拆成三步：
 1. 先说场景，别急着讲道理
@@ -516,6 +702,17 @@
         <div class="field">
           <label for="footerInput">署名 / 账号</label>
           <input id="footerInput" type="text" autocomplete="off" maxlength="24" value="@AndyCrow">
+        </div>
+
+        <div class="control-grid">
+          <div class="field">
+            <label for="badgeInput">角标</label>
+            <input id="badgeInput" type="text" autocomplete="off" maxlength="16" value="RED NOTE">
+          </div>
+          <div class="field">
+            <label for="ctaInput">收尾短句</label>
+            <input id="ctaInput" type="text" autocomplete="off" maxlength="18" value="收藏备用">
+          </div>
         </div>
       </section>
 
@@ -536,46 +733,118 @@
           <span class="mini-stat" id="sizeLabel">1080 x 1440</span>
         </div>
 
-        <span class="group-label">比例</span>
-        <div class="segmented" id="ratioGroup">
-          <button class="chip" type="button" data-ratio="3:4" aria-pressed="true">3:4</button>
-          <button class="chip" type="button" data-ratio="4:5" aria-pressed="false">4:5</button>
-          <button class="chip" type="button" data-ratio="1:1" aria-pressed="false">1:1</button>
-        </div>
+        <section class="style-section" aria-label="比例">
+          <span class="group-label">比例</span>
+          <div class="ratio-grid" id="ratioGroup">
+            <button class="chip ratio-card" type="button" data-ratio="3:4" aria-pressed="true"><span class="ratio-mark"></span><span><span class="ratio-name">3:4 首图</span><span class="ratio-size">1080 x 1440</span></span></button>
+            <button class="chip ratio-card" type="button" data-ratio="4:5" aria-pressed="false"><span class="ratio-mark"></span><span><span class="ratio-name">4:5 稳定</span><span class="ratio-size">1080 x 1350</span></span></button>
+            <button class="chip ratio-card" type="button" data-ratio="1:1" aria-pressed="false"><span class="ratio-mark"></span><span><span class="ratio-name">1:1 方图</span><span class="ratio-size">1080 x 1080</span></span></button>
+            <button class="chip ratio-card" type="button" data-ratio="2:3" aria-pressed="false"><span class="ratio-mark"></span><span><span class="ratio-name">2:3 长封面</span><span class="ratio-size">1080 x 1620</span></span></button>
+            <button class="chip ratio-card" type="button" data-ratio="9:16" aria-pressed="false"><span class="ratio-mark"></span><span><span class="ratio-name">9:16 竖屏</span><span class="ratio-size">1080 x 1920</span></span></button>
+            <button class="chip ratio-card" type="button" data-ratio="16:9" aria-pressed="false"><span class="ratio-mark"></span><span><span class="ratio-name">16:9 横图</span><span class="ratio-size">1920 x 1080</span></span></button>
+            <button class="chip ratio-card" type="button" data-ratio="long" aria-pressed="false"><span class="ratio-mark"></span><span><span class="ratio-name">长图</span><span class="ratio-size">1080 x 2160</span></span></button>
+          </div>
+        </section>
 
-        <span class="group-label">模板</span>
-        <div class="template-grid" id="templateGroup">
-          <button class="template-button" type="button" data-template="cover" aria-pressed="true">封面标题<small>大标题 + 重点句</small></button>
-          <button class="template-button" type="button" data-template="list" aria-pressed="false">清单笔记<small>逐条分隔</small></button>
-          <button class="template-button" type="button" data-template="quote" aria-pressed="false">金句卡片<small>居中留白</small></button>
-          <button class="template-button" type="button" data-template="steps" aria-pressed="false">步骤教程<small>编号强调</small></button>
-        </div>
+        <section class="style-section" aria-label="模板">
+          <span class="group-label">模板</span>
+          <div class="template-grid" id="templateGroup">
+            <button class="template-button" type="button" data-template="cover" aria-pressed="true">封面标题<small>大标题 + 重点句</small></button>
+            <button class="template-button" type="button" data-template="list" aria-pressed="false">清单笔记<small>逐条分隔</small></button>
+            <button class="template-button" type="button" data-template="quote" aria-pressed="false">金句卡片<small>居中留白</small></button>
+            <button class="template-button" type="button" data-template="steps" aria-pressed="false">步骤教程<small>编号强调</small></button>
+            <button class="template-button" type="button" data-template="magazine" aria-pressed="false">杂志封面<small>栏目感 + 大留白</small></button>
+            <button class="template-button" type="button" data-template="checklist" aria-pressed="false">打勾清单<small>行动项</small></button>
+            <button class="template-button" type="button" data-template="compare" aria-pressed="false">对比卡片<small>前后/正反</small></button>
+            <button class="template-button" type="button" data-template="timeline" aria-pressed="false">时间线<small>流程节奏</small></button>
+            <button class="template-button" type="button" data-template="memo" aria-pressed="false">便签拼贴<small>碎片灵感</small></button>
+            <button class="template-button" type="button" data-template="code" aria-pressed="false">代码/摘录<small>深色块</small></button>
+          </div>
+        </section>
 
-        <span class="group-label">配色</span>
-        <div class="swatches" id="paletteGroup">
-          <button class="swatch" type="button" data-palette="berry" aria-label="莓果红" aria-pressed="true" style="background: linear-gradient(135deg, #fff7f5, #ffe0e8 52%, #ff3f63);"><span>莓果</span></button>
-          <button class="swatch" type="button" data-palette="moss" aria-label="苔绿" aria-pressed="false" style="background: linear-gradient(135deg, #f6fff8, #cbe8d6 52%, #2f7d5a);"><span>苔绿</span></button>
-          <button class="swatch" type="button" data-palette="ink" aria-label="墨蓝" aria-pressed="false" style="background: linear-gradient(135deg, #f8fbff, #dce8ff 52%, #426fe8);"><span>墨蓝</span></button>
-          <button class="swatch" type="button" data-palette="sunset" aria-label="日落" aria-pressed="false" style="background: linear-gradient(135deg, #fff9ea, #ffe5a3 52%, #e15f3f);"><span>日落</span></button>
-        </div>
+        <section class="style-section" aria-label="配色">
+          <span class="group-label">配色</span>
+          <div class="swatches" id="paletteGroup">
+            <button class="swatch" type="button" data-palette="berry" aria-label="莓果红" aria-pressed="true" style="background: linear-gradient(135deg, #fff7f5, #ffe0e8 52%, #ff3f63);"><span>莓果</span></button>
+            <button class="swatch" type="button" data-palette="moss" aria-label="苔绿" aria-pressed="false" style="background: linear-gradient(135deg, #f6fff8, #cbe8d6 52%, #2f7d5a);"><span>苔绿</span></button>
+            <button class="swatch" type="button" data-palette="tum" aria-label="墨蓝" aria-pressed="false" style="background: linear-gradient(135deg, #f7fbff, #d7ecff 52%, #0065bd);"><span>墨蓝</span></button>
+            <button class="swatch" type="button" data-palette="sunset" aria-label="日落" aria-pressed="false" style="background: linear-gradient(135deg, #fff9ea, #ffe5a3 52%, #e15f3f);"><span>日落</span></button>
+            <button class="swatch" type="button" data-palette="mono" aria-label="黑白" aria-pressed="false" style="background: linear-gradient(135deg, #ffffff, #eeeeee 52%, #242424);"><span>黑白</span></button>
+            <button class="swatch" type="button" data-palette="candy" aria-label="糖纸" aria-pressed="false" style="background: linear-gradient(135deg, #fff5fd, #dff7ff 52%, #ff72a9);"><span>糖纸</span></button>
+            <button class="swatch" type="button" data-palette="latte" aria-label="拿铁" aria-pressed="false" style="background: linear-gradient(135deg, #fffaf3, #edd9bd 52%, #8c5c3f);"><span>拿铁</span></button>
+            <button class="swatch" type="button" data-palette="custom" aria-label="自定义" aria-pressed="false" style="background: linear-gradient(135deg, #fff7f5, #fffdf9 52%, #ff3f63);"><span>自定</span></button>
+          </div>
 
-        <label class="group-label" for="fontSizeInput">字号</label>
-        <div class="range-row">
-          <input id="fontSizeInput" type="range" min="34" max="58" value="44">
-          <span class="mini-stat" id="fontSizeLabel">44</span>
-        </div>
+          <div class="color-grid">
+            <div class="field">
+              <label for="bgColorInput">背景</label>
+              <input id="bgColorInput" type="color" value="#fff7f5">
+            </div>
+            <div class="field">
+              <label for="accentColorInput">强调色</label>
+              <input id="accentColorInput" type="color" value="#ff3f63">
+            </div>
+            <div class="field">
+              <label for="inkColorInput">文字</label>
+              <input id="inkColorInput" type="color" value="#2a2023">
+            </div>
+            <div class="field">
+              <label for="cardColorInput">卡片</label>
+              <input id="cardColorInput" type="color" value="#fffdf9">
+            </div>
+          </div>
+        </section>
 
-        <label class="group-label" for="densityInput">留白</label>
-        <div class="range-row">
-          <input id="densityInput" type="range" min="68" max="136" value="96">
-          <span class="mini-stat" id="densityLabel">96</span>
-        </div>
+        <section class="style-section" aria-label="字体">
+          <div class="field">
+            <label for="fontFamilyInput">字体气质</label>
+            <select id="fontFamilyInput">
+              <option value="modern">现代黑体</option>
+              <option value="serif">宋体杂志</option>
+              <option value="round">圆润生活</option>
+              <option value="mono">等宽摘录</option>
+            </select>
+          </div>
 
-        <ul class="note-list" aria-label="内容结构">
-          <li>封面：一句话结论，先让人知道为什么要点开。</li>
-          <li>正文：场景、步骤、动作，每屏只承担一个重点。</li>
-          <li>收尾：留下收藏理由，语气比口号更重要。</li>
-        </ul>
+          <label class="group-label" for="titleScaleInput">标题</label>
+          <div class="range-row">
+            <input id="titleScaleInput" type="range" min="76" max="128" value="100">
+            <span class="mini-stat" id="titleScaleLabel">100</span>
+          </div>
+
+          <label class="group-label" for="fontSizeInput">正文</label>
+          <div class="range-row">
+            <input id="fontSizeInput" type="range" min="30" max="68" value="44">
+            <span class="mini-stat" id="fontSizeLabel">44</span>
+          </div>
+
+          <label class="group-label" for="lineHeightInput">行距</label>
+          <div class="range-row">
+            <input id="lineHeightInput" type="range" min="112" max="178" value="136">
+            <span class="mini-stat" id="lineHeightLabel">136</span>
+          </div>
+        </section>
+
+        <section class="style-section" aria-label="画面">
+          <label class="group-label" for="densityInput">留白</label>
+          <div class="range-row">
+            <input id="densityInput" type="range" min="68" max="136" value="96">
+            <span class="mini-stat" id="densityLabel">96</span>
+          </div>
+
+          <label class="group-label" for="radiusInput">圆角</label>
+          <div class="range-row">
+            <input id="radiusInput" type="range" min="0" max="36" value="8">
+            <span class="mini-stat" id="radiusLabel">8</span>
+          </div>
+
+          <div class="toggle-grid">
+            <label class="toggle"><input id="badgeToggle" type="checkbox" checked>角标</label>
+            <label class="toggle"><input id="decorToggle" type="checkbox" checked>装饰</label>
+            <label class="toggle"><input id="pageToggle" type="checkbox" checked>页码</label>
+          </div>
+        </section>
+
       </aside>
     </section>
   </main>
@@ -586,15 +855,32 @@
     const canvas = document.getElementById("cardCanvas");
     const ctx = canvas.getContext("2d");
     const titleInput = document.getElementById("titleInput");
+    const subtitleInput = document.getElementById("subtitleInput");
     const bodyInput = document.getElementById("bodyInput");
     const footerInput = document.getElementById("footerInput");
+    const badgeInput = document.getElementById("badgeInput");
+    const ctaInput = document.getElementById("ctaInput");
     const ratioGroup = document.getElementById("ratioGroup");
     const templateGroup = document.getElementById("templateGroup");
     const paletteGroup = document.getElementById("paletteGroup");
+    const bgColorInput = document.getElementById("bgColorInput");
+    const accentColorInput = document.getElementById("accentColorInput");
+    const inkColorInput = document.getElementById("inkColorInput");
+    const cardColorInput = document.getElementById("cardColorInput");
+    const fontFamilyInput = document.getElementById("fontFamilyInput");
+    const titleScaleInput = document.getElementById("titleScaleInput");
     const fontSizeInput = document.getElementById("fontSizeInput");
+    const lineHeightInput = document.getElementById("lineHeightInput");
     const densityInput = document.getElementById("densityInput");
+    const radiusInput = document.getElementById("radiusInput");
+    const badgeToggle = document.getElementById("badgeToggle");
+    const decorToggle = document.getElementById("decorToggle");
+    const pageToggle = document.getElementById("pageToggle");
+    const titleScaleLabel = document.getElementById("titleScaleLabel");
     const fontSizeLabel = document.getElementById("fontSizeLabel");
+    const lineHeightLabel = document.getElementById("lineHeightLabel");
     const densityLabel = document.getElementById("densityLabel");
+    const radiusLabel = document.getElementById("radiusLabel");
     const sizeLabel = document.getElementById("sizeLabel");
     const pageLabel = document.getElementById("pageLabel");
     const countLabel = document.getElementById("countLabel");
@@ -604,14 +890,21 @@
     const palettes = {
       berry: { bg: "#fff7f5", bg2: "#ffe1e8", ink: "#2a2023", muted: "#7a5c61", accent: "#ff3f63", accent2: "#ffd76a", card: "#fffdf9" },
       moss: { bg: "#f6fff8", bg2: "#d7f0df", ink: "#1e3028", muted: "#5d7165", accent: "#2f7d5a", accent2: "#ffcf5a", card: "#fffffb" },
-      ink: { bg: "#f7fbff", bg2: "#dce8ff", ink: "#1c2233", muted: "#5e6680", accent: "#426fe8", accent2: "#ff7b92", card: "#fffefd" },
-      sunset: { bg: "#fff8ea", bg2: "#ffe6a6", ink: "#30231d", muted: "#7b6557", accent: "#e15f3f", accent2: "#4a82e8", card: "#fffefa" }
+      tum: { bg: "#f7fbff", bg2: "#d7ecff", ink: "#003359", muted: "#4b6987", accent: "#0065bd", accent2: "#64a0c8", card: "#ffffff" },
+      sunset: { bg: "#fff8ea", bg2: "#ffe6a6", ink: "#30231d", muted: "#7b6557", accent: "#e15f3f", accent2: "#4a82e8", card: "#fffefa" },
+      mono: { bg: "#ffffff", bg2: "#eeeeee", ink: "#242424", muted: "#6c6c6c", accent: "#242424", accent2: "#cfcfcf", card: "#ffffff" },
+      candy: { bg: "#fff5fd", bg2: "#dff7ff", ink: "#28243a", muted: "#74647d", accent: "#ff72a9", accent2: "#78d8ff", card: "#fffefa" },
+      latte: { bg: "#fffaf3", bg2: "#edd9bd", ink: "#33251d", muted: "#7d6759", accent: "#8c5c3f", accent2: "#d9a85d", card: "#fffdf7" }
     };
 
     const ratios = {
       "3:4": [1080, 1440],
       "4:5": [1080, 1350],
-      "1:1": [1080, 1080]
+      "1:1": [1080, 1080],
+      "2:3": [1080, 1620],
+      "9:16": [1080, 1920],
+      "16:9": [1920, 1080],
+      "long": [1080, 2160]
     };
 
     const state = {
@@ -620,6 +913,60 @@
       palette: "berry",
       page: 0
     };
+
+    const fontPresets = {
+      modern: '"PingFang SC", "Microsoft YaHei", "Segoe UI", Arial, sans-serif',
+      serif: 'Georgia, "Songti SC", SimSun, serif',
+      round: '"Microsoft YaHei UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif',
+      mono: '"Cascadia Code", Consolas, "SFMono-Regular", "Microsoft YaHei", monospace'
+    };
+
+    function hexToRgb(hex) {
+      const clean = String(hex || "").replace("#", "");
+      if (clean.length !== 6) return [255, 255, 255];
+      return [
+        parseInt(clean.slice(0, 2), 16),
+        parseInt(clean.slice(2, 4), 16),
+        parseInt(clean.slice(4, 6), 16)
+      ];
+    }
+
+    function mixHex(a, b, amount) {
+      const ar = hexToRgb(a);
+      const br = hexToRgb(b);
+      const mixed = ar.map((value, index) => Math.round(value * (1 - amount) + br[index] * amount));
+      return "#" + mixed.map((value) => value.toString(16).padStart(2, "0")).join("");
+    }
+
+    function withAlpha(hex, alpha) {
+      const [r, g, b] = hexToRgb(hex);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function getPalette() {
+      if (state.palette !== "custom") return palettes[state.palette];
+      return {
+        bg: bgColorInput.value,
+        bg2: mixHex(bgColorInput.value, accentColorInput.value, 0.18),
+        ink: inkColorInput.value,
+        muted: mixHex(inkColorInput.value, bgColorInput.value, 0.42),
+        accent: accentColorInput.value,
+        accent2: mixHex(accentColorInput.value, cardColorInput.value, 0.35),
+        card: cardColorInput.value
+      };
+    }
+
+    function titleScale() {
+      return Number(titleScaleInput.value) / 100;
+    }
+
+    function lineRatio() {
+      return Number(lineHeightInput.value) / 100;
+    }
+
+    function cornerRadius() {
+      return Number(radiusInput.value);
+    }
 
     function getPages() {
       const raw = bodyInput.value.trim();
@@ -640,6 +987,8 @@
       canvas.width = width;
       canvas.height = height;
       sizeLabel.textContent = `${width} x ${height}`;
+      canvas.style.maxWidth = width > height ? "min(100%, 640px)" : height >= 1920 ? "min(100%, 380px)" : "min(100%, 460px)";
+      canvas.style.maxHeight = height >= 1920 ? "min(78vh, 780px)" : "min(72vh, 720px)";
     }
 
     function roundedRect(x, y, width, height, radius) {
@@ -661,6 +1010,7 @@
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      if (!decorToggle.checked) return;
       ctx.save();
       ctx.globalAlpha = 0.16;
       ctx.fillStyle = palette.accent;
@@ -675,22 +1025,25 @@
     }
 
     function drawRibbon(palette, margin) {
+      if (!badgeToggle.checked) return;
+      const badge = badgeInput.value.trim() || "RED NOTE";
       ctx.save();
       ctx.translate(canvas.width - margin - 110, margin - 24);
       ctx.rotate(-0.12);
-      roundedRect(0, 0, 168, 48, 24);
+      ctx.font = "800 24px " + fontStack();
+      const width = Math.max(150, ctx.measureText(badge).width + 64);
+      roundedRect(0, 0, width, 48, 24);
       ctx.fillStyle = palette.accent;
       ctx.fill();
       ctx.fillStyle = "#ffffff";
-      ctx.font = "800 24px " + fontStack();
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("RED NOTE", 84, 25);
+      ctx.fillText(badge, width / 2, 25);
       ctx.restore();
     }
 
     function fontStack() {
-      return '"PingFang SC", "Microsoft YaHei", "Segoe UI", Arial, sans-serif';
+      return fontPresets[fontFamilyInput.value] || fontPresets.modern;
     }
 
     function serifStack() {
@@ -733,43 +1086,63 @@
       });
     }
 
+    function getTitleLines(maxWidth, font, limit) {
+      const title = titleInput.value.trim();
+      if (!title) return [];
+      return wrapText(title, maxWidth, font).slice(0, limit);
+    }
+
+    function drawTitleBlock(maxWidth, x, y, font, lineHeight, color, align, limit) {
+      const lines = getTitleLines(maxWidth, font, limit);
+      if (!lines.length) return 0;
+      drawTextLines(lines, x, y, lineHeight, color, align);
+      return lines.length * lineHeight;
+    }
+
     function drawCover(palette, pageText, margin) {
       drawRibbon(palette, margin);
-      const titleSize = canvas.height < 1200 ? 78 : 92;
+      const titleSize = Math.round((canvas.height < 1200 ? 78 : 92) * titleScale());
       const bodySize = Number(fontSizeInput.value);
       const maxWidth = canvas.width - margin * 2;
-      const titleLines = wrapText(titleInput.value || "未命名标题", maxWidth, `900 ${titleSize}px ${fontStack()}`).slice(0, 4);
+      const titleFont = `900 ${titleSize}px ${fontStack()}`;
+      const titleLines = getTitleLines(maxWidth, titleFont, 4);
       const bodyLines = wrapText(pageText, maxWidth, `600 ${bodySize}px ${fontStack()}`).slice(0, 8);
+      const subtitleLines = wrapText(subtitleInput.value, maxWidth, `700 ${Math.round(bodySize * 0.82)}px ${fontStack()}`).slice(0, 2);
 
-      ctx.fillStyle = palette.accent;
-      roundedRect(margin, margin + 34, 96, 18, 9);
-      ctx.fill();
+      if (titleLines.length) {
+        ctx.fillStyle = palette.accent;
+        roundedRect(margin, margin + 34, 96, 18, 9);
+        ctx.fill();
+      }
 
-      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      ctx.font = titleFont;
       drawTextLines(titleLines, margin, margin + 86, titleSize * 1.16, palette.ink, "left");
 
-      const bodyY = margin + 118 + titleLines.length * titleSize * 1.16;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
-      roundedRect(margin - 10, bodyY - 22, maxWidth + 20, bodyLines.length * bodySize * 1.55 + 52, 8);
+      const bodyY = titleLines.length ? margin + 118 + titleLines.length * titleSize * 1.16 : margin + 66;
+      ctx.font = `700 ${Math.round(bodySize * 0.82)}px ${fontStack()}`;
+      drawTextLines(subtitleLines, margin, bodyY - 22, bodySize * 1.08, palette.muted, "left");
+      const copyY = bodyY + subtitleLines.length * bodySize * 1.08 + 24;
+      ctx.fillStyle = withAlpha(palette.card, 0.72);
+      roundedRect(margin - 10, copyY - 22, maxWidth + 20, bodyLines.length * bodySize * lineRatio() + 52, cornerRadius());
       ctx.fill();
       ctx.font = `600 ${bodySize}px ${fontStack()}`;
-      drawTextLines(bodyLines, margin, bodyY, bodySize * 1.55, palette.ink, "left");
+      drawTextLines(bodyLines, margin, copyY, bodySize * lineRatio(), palette.ink, "left");
     }
 
     function drawList(palette, pageText, margin) {
-      const titleSize = canvas.height < 1200 ? 58 : 66;
+      const titleSize = Math.round((canvas.height < 1200 ? 58 : 66) * titleScale());
       const bodySize = Number(fontSizeInput.value);
       const maxWidth = canvas.width - margin * 2;
       ctx.font = `900 ${titleSize}px ${fontStack()}`;
-      drawTextLines(wrapText(titleInput.value, maxWidth, ctx.font).slice(0, 3), margin, margin, titleSize * 1.12, palette.ink, "left");
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin, ctx.font, titleSize * 1.12, palette.ink, "left", 3);
 
       const items = splitSmartLine(pageText).slice(0, 8);
-      let y = margin + 172;
+      let y = titleHeight ? margin + titleHeight + 46 : margin + 34;
       items.forEach((item, index) => {
         const lines = wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 110, `650 ${bodySize}px ${fontStack()}`).slice(0, 3);
-        const blockHeight = Math.max(88, lines.length * bodySize * 1.36 + 34);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.70)";
-        roundedRect(margin, y, maxWidth, blockHeight, 8);
+        const blockHeight = Math.max(88, lines.length * bodySize * lineRatio() + 34);
+        ctx.fillStyle = withAlpha(palette.card, 0.74);
+        roundedRect(margin, y, maxWidth, blockHeight, cornerRadius());
         ctx.fill();
         ctx.fillStyle = palette.accent;
         roundedRect(margin + 26, y + 24, 52, 52, 26);
@@ -780,15 +1153,15 @@
         ctx.textBaseline = "middle";
         ctx.fillText(String(index + 1), margin + 52, y + 50);
         ctx.font = `650 ${bodySize}px ${fontStack()}`;
-        drawTextLines(lines, margin + 104, y + 24, bodySize * 1.36, palette.ink, "left");
+        drawTextLines(lines, margin + 104, y + 24, bodySize * lineRatio(), palette.ink, "left");
         y += blockHeight + 18;
       });
     }
 
     function drawQuote(palette, pageText, margin) {
       const maxWidth = canvas.width - margin * 2;
-      const titleSize = canvas.height < 1200 ? 42 : 48;
-      const bodySize = Number(fontSizeInput.value) + 14;
+      const titleSize = Math.round((canvas.height < 1200 ? 42 : 48) * titleScale());
+      const bodySize = Math.round((Number(fontSizeInput.value) + 14) * titleScale());
       ctx.fillStyle = palette.accent;
       ctx.font = `900 132px ${serifStack()}`;
       ctx.textAlign = "left";
@@ -796,19 +1169,19 @@
       ctx.fillText("“", margin - 16, margin + 30);
 
       const lines = wrapText(pageText || titleInput.value, maxWidth, `800 ${bodySize}px ${serifStack()}`).slice(0, 8);
-      const blockHeight = lines.length * bodySize * 1.34;
+      const blockHeight = lines.length * bodySize * lineRatio();
       const y = Math.max(margin + 180, (canvas.height - blockHeight) / 2 - 40);
       ctx.font = `800 ${bodySize}px ${serifStack()}`;
-      drawTextLines(lines, canvas.width / 2, y, bodySize * 1.34, palette.ink, "center");
+      drawTextLines(lines, canvas.width / 2, y, bodySize * lineRatio(), palette.ink, "center");
 
       ctx.font = `800 ${titleSize}px ${fontStack()}`;
-      const titleLines = wrapText(titleInput.value, maxWidth, ctx.font).slice(0, 2);
+      const titleLines = getTitleLines(maxWidth, ctx.font, 2);
       drawTextLines(titleLines, canvas.width / 2, y + blockHeight + 70, titleSize * 1.2, palette.muted, "center");
     }
 
     function drawSteps(palette, pageText, margin) {
       const maxWidth = canvas.width - margin * 2;
-      const titleSize = canvas.height < 1200 ? 60 : 70;
+      const titleSize = Math.round((canvas.height < 1200 ? 60 : 70) * titleScale());
       const bodySize = Number(fontSizeInput.value);
       ctx.fillStyle = palette.accent;
       ctx.font = `900 28px ${fontStack()}`;
@@ -817,10 +1190,10 @@
       ctx.fillText("STEP BY STEP", margin, margin);
 
       ctx.font = `900 ${titleSize}px ${fontStack()}`;
-      drawTextLines(wrapText(titleInput.value, maxWidth, ctx.font).slice(0, 3), margin, margin + 48, titleSize * 1.12, palette.ink, "left");
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin + 48, ctx.font, titleSize * 1.12, palette.ink, "left", 3);
 
       const items = splitSmartLine(pageText).slice(0, 5);
-      const startY = margin + 236;
+      const startY = titleHeight ? margin + 86 + titleHeight : margin + 104;
       items.forEach((item, index) => {
         const y = startY + index * 156;
         ctx.strokeStyle = index === items.length - 1 ? "transparent" : palette.accent;
@@ -839,8 +1212,165 @@
         ctx.textBaseline = "middle";
         ctx.fillText(String(index + 1), margin + 34, y + 36);
         ctx.font = `700 ${bodySize}px ${fontStack()}`;
-        drawTextLines(wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 100, ctx.font).slice(0, 3), margin + 94, y + 10, bodySize * 1.36, palette.ink, "left");
+        drawTextLines(wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 100, ctx.font).slice(0, 3), margin + 94, y + 10, bodySize * lineRatio(), palette.ink, "left");
       });
+    }
+
+    function drawMagazine(palette, pageText, margin) {
+      drawRibbon(palette, margin);
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = Math.round((canvas.height < 1200 ? 86 : 104) * titleScale());
+      const bodySize = Number(fontSizeInput.value);
+      ctx.strokeStyle = palette.accent;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(margin, margin + 28, maxWidth, canvas.height - margin * 2 - 12);
+      ctx.fillStyle = palette.accent;
+      ctx.font = `900 26px ${fontStack()}`;
+      ctx.fillText(subtitleInput.value || "EDITORIAL NOTE", margin + 28, margin + 58);
+      ctx.font = `900 ${titleSize}px ${serifStack()}`;
+      const titleHeight = drawTitleBlock(maxWidth - 56, margin + 28, margin + 132, ctx.font, titleSize * 1.05, palette.ink, "left", 4);
+      const lines = wrapText(pageText, maxWidth - 56, `600 ${bodySize}px ${fontStack()}`).slice(0, 7);
+      ctx.font = `600 ${bodySize}px ${fontStack()}`;
+      const textY = titleHeight ? canvas.height - margin - 210 : margin + 132;
+      drawTextLines(lines, margin + 28, textY, bodySize * lineRatio(), palette.ink, "left");
+    }
+
+    function drawChecklist(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = Math.round(62 * titleScale());
+      const bodySize = Number(fontSizeInput.value);
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin, ctx.font, titleSize * 1.15, palette.ink, "left", 2);
+      ctx.font = `700 28px ${fontStack()}`;
+      const subtitleY = titleHeight ? margin + titleHeight + 26 : margin;
+      const subtitleLines = wrapText(subtitleInput.value, maxWidth, ctx.font).slice(0, 2);
+      drawTextLines(subtitleLines, margin, subtitleY, 40, palette.muted, "left");
+
+      let y = subtitleY + (subtitleLines.length ? subtitleLines.length * 40 + 34 : 22);
+      splitSmartLine(pageText).slice(0, 7).forEach((item) => {
+        const lines = wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 92, `700 ${bodySize}px ${fontStack()}`).slice(0, 2);
+        const blockHeight = Math.max(82, lines.length * bodySize * lineRatio() + 30);
+        ctx.fillStyle = withAlpha(palette.card, 0.78);
+        roundedRect(margin, y, maxWidth, blockHeight, cornerRadius());
+        ctx.fill();
+        ctx.strokeStyle = palette.accent;
+        ctx.lineWidth = 5;
+        roundedRect(margin + 24, y + 24, 38, 38, 10);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(margin + 32, y + 43);
+        ctx.lineTo(margin + 42, y + 54);
+        ctx.lineTo(margin + 60, y + 31);
+        ctx.stroke();
+        ctx.font = `700 ${bodySize}px ${fontStack()}`;
+        drawTextLines(lines, margin + 82, y + 22, bodySize * lineRatio(), palette.ink, "left");
+        y += blockHeight + 16;
+      });
+    }
+
+    function drawCompare(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = Math.round(62 * titleScale());
+      const bodySize = Number(fontSizeInput.value);
+      const parts = pageText.split(/\n\s*(?:vs|VS|对比|--)\s*\n/);
+      const left = splitSmartLine(parts[0] || pageText).slice(0, 5);
+      const right = splitSmartLine(parts[1] || pageText).slice(0, 5);
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin, ctx.font, titleSize * 1.12, palette.ink, "left", 2);
+      const top = titleHeight ? margin + titleHeight + 40 : margin + 24;
+      const colGap = 26;
+      const colWidth = (maxWidth - colGap) / 2;
+      [["Before", left, palette.muted], ["After", right, palette.accent]].forEach(([label, items, color], index) => {
+        const x = margin + index * (colWidth + colGap);
+        ctx.fillStyle = withAlpha(index ? palette.accent : palette.card, index ? 0.16 : 0.76);
+        roundedRect(x, top, colWidth, canvas.height - top - margin + 16, cornerRadius());
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.font = `900 34px ${fontStack()}`;
+        ctx.fillText(label, x + 28, top + 28);
+        let y = top + 90;
+        items.forEach((item) => {
+          ctx.font = `700 ${bodySize}px ${fontStack()}`;
+          const lines = wrapText(item.replace(/^\d+[.、]\s*/, ""), colWidth - 56, ctx.font).slice(0, 3);
+          drawTextLines(lines, x + 28, y, bodySize * lineRatio(), palette.ink, "left");
+          y += lines.length * bodySize * lineRatio() + 28;
+        });
+      });
+    }
+
+    function drawTimeline(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = Math.round(60 * titleScale());
+      const bodySize = Number(fontSizeInput.value);
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin, ctx.font, titleSize * 1.12, palette.ink, "left", 2);
+      const items = splitSmartLine(pageText).slice(0, 6);
+      const startY = titleHeight ? margin + titleHeight + 56 : margin + 30;
+      ctx.strokeStyle = palette.accent;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(margin + 44, startY + 16);
+      ctx.lineTo(margin + 44, startY + items.length * 126);
+      ctx.stroke();
+      items.forEach((item, index) => {
+        const y = startY + index * 126;
+        ctx.fillStyle = palette.accent;
+        ctx.beginPath();
+        ctx.arc(margin + 44, y + 28, 24, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `900 20px ${fontStack()}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(index + 1).padStart(2, "0"), margin + 44, y + 29);
+        ctx.font = `700 ${bodySize}px ${fontStack()}`;
+        drawTextLines(wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 104, ctx.font).slice(0, 2), margin + 94, y, bodySize * lineRatio(), palette.ink, "left");
+      });
+    }
+
+    function drawMemo(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = Math.round(58 * titleScale());
+      const bodySize = Number(fontSizeInput.value);
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin, ctx.font, titleSize * 1.12, palette.ink, "left", 2);
+      const items = splitSmartLine(pageText).slice(0, 6);
+      const noteWidth = (maxWidth - 26) / 2;
+      const noteTop = titleHeight ? margin + titleHeight + 44 : margin + 24;
+      const noteHeight = Math.max(170, (canvas.height - noteTop - margin) / 3 - 18);
+      items.forEach((item, index) => {
+        const col = index % 2;
+        const row = Math.floor(index / 2);
+        const x = margin + col * (noteWidth + 26);
+        const y = noteTop + row * (noteHeight + 20);
+        ctx.save();
+        ctx.translate(x + noteWidth / 2, y + noteHeight / 2);
+        ctx.rotate((index % 2 === 0 ? -0.018 : 0.018) * (decorToggle.checked ? 1 : 0));
+        ctx.fillStyle = index % 3 === 0 ? withAlpha(palette.accent2, 0.72) : withAlpha(palette.card, 0.82);
+        roundedRect(-noteWidth / 2, -noteHeight / 2, noteWidth, noteHeight, cornerRadius());
+        ctx.fill();
+        ctx.font = `750 ${Math.round(bodySize * 0.9)}px ${fontStack()}`;
+        drawTextLines(wrapText(item.replace(/^\d+[.、]\s*/, ""), noteWidth - 40, ctx.font).slice(0, 5), -noteWidth / 2 + 22, -noteHeight / 2 + 22, bodySize * 1.12, palette.ink, "left");
+        ctx.restore();
+      });
+    }
+
+    function drawCode(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = Math.round(54 * titleScale());
+      const bodySize = Number(fontSizeInput.value);
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      const titleHeight = drawTitleBlock(maxWidth, margin, margin, ctx.font, titleSize * 1.12, palette.ink, "left", 2);
+      const boxY = titleHeight ? margin + titleHeight + 36 : margin + 24;
+      const boxHeight = canvas.height - boxY - margin + 12;
+      ctx.fillStyle = "#202124";
+      roundedRect(margin, boxY, maxWidth, boxHeight, cornerRadius());
+      ctx.fill();
+      ctx.fillStyle = palette.accent2;
+      ctx.font = `800 26px ${fontStack()}`;
+      ctx.fillText(subtitleInput.value || "NOTE BLOCK", margin + 34, boxY + 32);
+      ctx.font = `600 ${bodySize}px ${fontPresets.mono}`;
+      drawTextLines(wrapText(pageText, maxWidth - 68, ctx.font).slice(0, 14), margin + 34, boxY + 86, bodySize * lineRatio(), "#f8f4ec", "left");
     }
 
     function drawFooter(palette, margin) {
@@ -852,7 +1382,7 @@
       ctx.textBaseline = "middle";
       ctx.fillText(footer, margin, y);
       ctx.textAlign = "right";
-      ctx.fillText("收藏备用", canvas.width - margin, y);
+      ctx.fillText(ctaInput.value.trim() || "收藏备用", canvas.width - margin, y);
     }
 
     function renderTabs(pageCount) {
@@ -868,30 +1398,56 @@
       }
     }
 
+    function drawPageNumber(palette, margin, pageCount) {
+      if (!pageToggle.checked || pageCount <= 1) return;
+      const text = `${state.page + 1}/${pageCount}`;
+      ctx.font = `800 24px ${fontStack()}`;
+      const width = ctx.measureText(text).width + 36;
+      const x = canvas.width - margin - width;
+      const y = canvas.height - margin - 58;
+      ctx.fillStyle = withAlpha(palette.card, 0.78);
+      roundedRect(x, y, width, 40, 20);
+      ctx.fill();
+      ctx.fillStyle = palette.muted;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, x + width / 2, y + 21);
+    }
+
     function render() {
       const pages = getPages();
       if (state.page >= pages.length) state.page = pages.length - 1;
       const pageText = pages[state.page] || "";
-      const palette = palettes[state.palette];
+      const palette = getPalette();
       const margin = Number(densityInput.value);
 
       fitCanvas();
       drawBackground(palette);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
-      roundedRect(margin - 28, margin - 28, canvas.width - (margin - 28) * 2, canvas.height - (margin - 28) * 2, 8);
+      ctx.fillStyle = withAlpha(palette.card, 0.42);
+      roundedRect(margin - 28, margin - 28, canvas.width - (margin - 28) * 2, canvas.height - (margin - 28) * 2, cornerRadius());
       ctx.fill();
 
       if (state.template === "cover") drawCover(palette, pageText, margin);
       if (state.template === "list") drawList(palette, pageText, margin);
       if (state.template === "quote") drawQuote(palette, pageText, margin);
       if (state.template === "steps") drawSteps(palette, pageText, margin);
+      if (state.template === "magazine") drawMagazine(palette, pageText, margin);
+      if (state.template === "checklist") drawChecklist(palette, pageText, margin);
+      if (state.template === "compare") drawCompare(palette, pageText, margin);
+      if (state.template === "timeline") drawTimeline(palette, pageText, margin);
+      if (state.template === "memo") drawMemo(palette, pageText, margin);
+      if (state.template === "code") drawCode(palette, pageText, margin);
+      drawPageNumber(palette, margin, pages.length);
       drawFooter(palette, margin);
 
       renderTabs(pages.length);
       pageLabel.textContent = `第 ${state.page + 1} / ${pages.length} 页`;
+      titleScaleLabel.textContent = titleScaleInput.value;
       fontSizeLabel.textContent = fontSizeInput.value;
+      lineHeightLabel.textContent = lineHeightInput.value;
       densityLabel.textContent = densityInput.value;
-      countLabel.textContent = `${(titleInput.value + bodyInput.value).replace(/\s/g, "").length} 字`;
+      radiusLabel.textContent = radiusInput.value;
+      countLabel.textContent = `${(titleInput.value + subtitleInput.value + bodyInput.value).replace(/\s/g, "").length} 字`;
     }
 
     function downloadPng() {
@@ -905,8 +1461,21 @@
       showToast("当前图片已下载");
     }
 
+    function downloadAllPng() {
+      const pages = getPages();
+      const current = state.page;
+      pages.forEach((_, index) => {
+        state.page = index;
+        render();
+        setTimeout(() => downloadPng(), index * 180);
+      });
+      state.page = current;
+      setTimeout(render, pages.length * 190);
+      showToast("正在下载全部图片");
+    }
+
     async function copyText() {
-      const text = `${titleInput.value}\n\n${bodyInput.value}\n\n${footerInput.value}`;
+      const text = `${titleInput.value}\n${subtitleInput.value}\n\n${bodyInput.value}\n\n${footerInput.value}`;
       try {
         await navigator.clipboard.writeText(text);
         showToast("标题正文已复制");
@@ -918,8 +1487,11 @@
 
     function loadSample() {
       titleInput.value = "周末低成本充电计划";
+      subtitleInput.value = "3 小时把自己从混乱里捞出来";
       bodyInput.value = "给自己留 3 个小时：\n1. 关掉通知，出门散步 30 分钟\n2. 找一家安静咖啡店，写下这周最消耗你的事\n3. 只处理一个最小问题，不追求立刻翻盘\n\n---\n\n真正让人恢复的不是躺平一整天，而是重新拿回一点掌控感。";
       footerInput.value = "@AndyCrow";
+      badgeInput.value = "SELF RESET";
+      ctaInput.value = "今天就试";
       state.page = 0;
       render();
       showToast("已填入示例文案");
@@ -932,8 +1504,17 @@
       showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
-    [titleInput, bodyInput, footerInput, fontSizeInput, densityInput].forEach((input) => {
+    [titleInput, subtitleInput, bodyInput, footerInput, badgeInput, ctaInput, bgColorInput, accentColorInput, inkColorInput, cardColorInput, fontFamilyInput, titleScaleInput, fontSizeInput, lineHeightInput, densityInput, radiusInput, badgeToggle, decorToggle, pageToggle].forEach((input) => {
       input.addEventListener("input", render);
+      input.addEventListener("change", render);
+    });
+
+    [bgColorInput, accentColorInput, inkColorInput, cardColorInput].forEach((input) => {
+      input.addEventListener("input", () => {
+        state.palette = "custom";
+        setPressed(paletteGroup, "button", state.palette, "palette");
+        render();
+      });
     });
 
     ratioGroup.addEventListener("click", (event) => {
@@ -957,6 +1538,13 @@
       if (!button) return;
       state.palette = button.dataset.palette;
       setPressed(paletteGroup, "button", state.palette, "palette");
+      if (palettes[state.palette]) {
+        const palette = palettes[state.palette];
+        bgColorInput.value = palette.bg;
+        accentColorInput.value = palette.accent;
+        inkColorInput.value = palette.ink;
+        cardColorInput.value = palette.card;
+      }
       render();
     });
 
@@ -968,6 +1556,7 @@
     });
 
     document.getElementById("downloadButton").addEventListener("click", downloadPng);
+    document.getElementById("downloadAllButton").addEventListener("click", downloadAllPng);
     document.getElementById("copyTextButton").addEventListener("click", copyText);
     document.getElementById("sampleButton").addEventListener("click", loadSample);
 
