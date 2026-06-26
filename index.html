@@ -1,0 +1,977 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="小红书文字转图片生成器，纯静态网页，本地生成封面和笔记图。">
+  <title>小红书文字转图片生成器</title>
+  <style>
+    :root {
+      --paper: #faf7f2;
+      --panel: #fffdf9;
+      --ink: #202124;
+      --muted: #6b6258;
+      --line: #ded4c8;
+      --line-strong: #c9b8a6;
+      --red: #ff3f63;
+      --red-deep: #d82649;
+      --green: #2f7d5a;
+      --blue: #426fe8;
+      --sun: #ffd76a;
+      --shadow: 0 18px 48px rgba(48, 38, 28, 0.14);
+      --radius: 8px;
+      --sans: "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", "Songti SC", SimSun, serif;
+      --mono: "Cascadia Code", Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 22px 22px, rgba(255, 63, 99, 0.12) 0 3px, transparent 4px),
+        linear-gradient(135deg, rgba(66, 111, 232, 0.08), transparent 34%),
+        var(--paper);
+      background-size: 44px 44px, auto, auto;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .home-teleport {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 20;
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      padding: 0 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: rgba(255, 253, 249, 0.94);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 10px 26px rgba(48, 38, 28, 0.12);
+      backdrop-filter: blur(8px);
+    }
+
+    .home-teleport:hover,
+    .home-teleport:focus-visible {
+      border-color: var(--red);
+      outline: none;
+    }
+
+    .app {
+      width: min(1440px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 74px 0 28px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(30px, 4vw, 54px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 700;
+      line-height: 1.1;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .button:hover,
+    .button:focus-visible {
+      transform: translateY(-1px);
+      border-color: var(--red);
+      outline: none;
+    }
+
+    .button.primary {
+      border-color: var(--red);
+      background: var(--red);
+      color: white;
+    }
+
+    .button.primary:hover,
+    .button.primary:focus-visible {
+      background: var(--red-deep);
+    }
+
+    .button.ghost {
+      background: rgba(255, 253, 249, 0.68);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 460px) minmax(420px, 1fr) minmax(250px, 340px);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel,
+    .preview-stage,
+    .side-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 249, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .panel,
+    .side-panel {
+      padding: 14px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .mini-stat {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label,
+    .group-label {
+      display: block;
+      margin: 0 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #fffefa;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .field input,
+    .field select {
+      height: 38px;
+      padding: 8px 10px;
+    }
+
+    .field textarea {
+      min-height: 260px;
+      resize: vertical;
+      padding: 10px;
+      line-height: 1.62;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(255, 63, 99, 0.13);
+    }
+
+    .segmented,
+    .swatches,
+    .template-grid {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .segmented {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .template-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chip,
+    .template-button,
+    .swatch {
+      min-height: 38px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #fffefa;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chip[aria-pressed="true"],
+    .template-button[aria-pressed="true"] {
+      border-color: var(--red);
+      background: #fff0f3;
+      color: var(--red-deep);
+    }
+
+    .template-button {
+      padding: 10px;
+      text-align: left;
+      line-height: 1.25;
+    }
+
+    .template-button small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .swatches {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .swatch {
+      position: relative;
+      min-height: 48px;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .swatch span {
+      position: absolute;
+      right: 6px;
+      bottom: 5px;
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.76);
+      color: #1d1d1f;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .swatch[aria-pressed="true"] {
+      outline: 3px solid rgba(255, 63, 99, 0.28);
+      border-color: var(--red);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 42px;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--red);
+    }
+
+    .preview-stage {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      min-height: 650px;
+      padding: 20px;
+      background:
+        linear-gradient(90deg, rgba(32, 33, 36, 0.05) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(32, 33, 36, 0.05) 1px, transparent 1px),
+        rgba(255, 253, 249, 0.72);
+      background-size: 24px 24px;
+    }
+
+    .canvas-wrap {
+      display: grid;
+      width: min(100%, 540px);
+      min-height: 560px;
+      place-items: center;
+    }
+
+    canvas {
+      display: block;
+      width: min(100%, 420px);
+      height: auto;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 22px 58px rgba(32, 33, 36, 0.24);
+    }
+
+    .page-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .page-tab {
+      min-width: 38px;
+      min-height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: #fffefa;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .page-tab[aria-pressed="true"] {
+      border-color: var(--red);
+      background: var(--red);
+      color: white;
+    }
+
+    .note-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .note-list li {
+      border-left: 3px solid var(--red);
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #fff5f7;
+      color: #473239;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 30;
+      max-width: min(420px, calc(100vw - 36px));
+      padding: 10px 12px;
+      border: 1px solid rgba(47, 125, 90, 0.34);
+      border-radius: var(--radius);
+      background: #f6fff9;
+      color: var(--green);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1180px) {
+      .workspace {
+        grid-template-columns: minmax(310px, 440px) minmax(360px, 1fr);
+      }
+
+      .side-panel {
+        grid-column: 1 / -1;
+      }
+
+      .side-panel .note-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        width: min(100vw - 18px, 1440px);
+        padding-top: 68px;
+      }
+
+      .topbar,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+
+      .preview-stage {
+        min-height: auto;
+        padding: 14px;
+      }
+
+      .canvas-wrap {
+        min-height: auto;
+      }
+
+      .side-panel .note-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="home-teleport" href="https://andycr0w.github.io/">← AndyCrow Home</a>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>小红书文字转图片生成器</h1>
+        <p>粘贴文案，选版式，浏览器本地生成可发布的 PNG。</p>
+      </div>
+      <div class="top-actions">
+        <button class="button ghost" id="sampleButton" type="button">示例文案</button>
+        <button class="button ghost" id="copyTextButton" type="button">复制标题正文</button>
+        <button class="button primary" id="downloadButton" type="button">下载当前图</button>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="生成器工作区">
+      <section class="panel" aria-labelledby="copy-title">
+        <div class="panel-title">
+          <h2 id="copy-title">文案</h2>
+          <span class="mini-stat" id="countLabel">0 字</span>
+        </div>
+
+        <div class="field">
+          <label for="titleInput">封面标题</label>
+          <input id="titleInput" type="text" autocomplete="off" maxlength="28" value="普通人也能写出收藏级笔记">
+        </div>
+
+        <div class="field">
+          <label for="bodyInput">正文</label>
+          <textarea id="bodyInput" spellcheck="false">把复杂经验拆成三步：
+1. 先说场景，别急着讲道理
+2. 每段只放一个结论
+3. 结尾给一个马上能做的小动作
+
+适合知识分享、生活方式、读书笔记和清单类内容。</textarea>
+        </div>
+
+        <div class="field">
+          <label for="footerInput">署名 / 账号</label>
+          <input id="footerInput" type="text" autocomplete="off" maxlength="24" value="@AndyCrow">
+        </div>
+      </section>
+
+      <section class="preview-stage" aria-labelledby="preview-title">
+        <div class="panel-title">
+          <h2 id="preview-title">预览</h2>
+          <span class="mini-stat" id="pageLabel">第 1 / 1 页</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="cardCanvas" width="1080" height="1440" aria-label="小红书图片预览"></canvas>
+        </div>
+        <div class="page-tabs" id="pageTabs" aria-label="分页"></div>
+      </section>
+
+      <aside class="side-panel" aria-labelledby="style-title">
+        <div class="panel-title">
+          <h2 id="style-title">样式</h2>
+          <span class="mini-stat" id="sizeLabel">1080 x 1440</span>
+        </div>
+
+        <span class="group-label">比例</span>
+        <div class="segmented" id="ratioGroup">
+          <button class="chip" type="button" data-ratio="3:4" aria-pressed="true">3:4</button>
+          <button class="chip" type="button" data-ratio="4:5" aria-pressed="false">4:5</button>
+          <button class="chip" type="button" data-ratio="1:1" aria-pressed="false">1:1</button>
+        </div>
+
+        <span class="group-label">模板</span>
+        <div class="template-grid" id="templateGroup">
+          <button class="template-button" type="button" data-template="cover" aria-pressed="true">封面标题<small>大标题 + 重点句</small></button>
+          <button class="template-button" type="button" data-template="list" aria-pressed="false">清单笔记<small>逐条分隔</small></button>
+          <button class="template-button" type="button" data-template="quote" aria-pressed="false">金句卡片<small>居中留白</small></button>
+          <button class="template-button" type="button" data-template="steps" aria-pressed="false">步骤教程<small>编号强调</small></button>
+        </div>
+
+        <span class="group-label">配色</span>
+        <div class="swatches" id="paletteGroup">
+          <button class="swatch" type="button" data-palette="berry" aria-label="莓果红" aria-pressed="true" style="background: linear-gradient(135deg, #fff7f5, #ffe0e8 52%, #ff3f63);"><span>莓果</span></button>
+          <button class="swatch" type="button" data-palette="moss" aria-label="苔绿" aria-pressed="false" style="background: linear-gradient(135deg, #f6fff8, #cbe8d6 52%, #2f7d5a);"><span>苔绿</span></button>
+          <button class="swatch" type="button" data-palette="ink" aria-label="墨蓝" aria-pressed="false" style="background: linear-gradient(135deg, #f8fbff, #dce8ff 52%, #426fe8);"><span>墨蓝</span></button>
+          <button class="swatch" type="button" data-palette="sunset" aria-label="日落" aria-pressed="false" style="background: linear-gradient(135deg, #fff9ea, #ffe5a3 52%, #e15f3f);"><span>日落</span></button>
+        </div>
+
+        <label class="group-label" for="fontSizeInput">字号</label>
+        <div class="range-row">
+          <input id="fontSizeInput" type="range" min="34" max="58" value="44">
+          <span class="mini-stat" id="fontSizeLabel">44</span>
+        </div>
+
+        <label class="group-label" for="densityInput">留白</label>
+        <div class="range-row">
+          <input id="densityInput" type="range" min="68" max="136" value="96">
+          <span class="mini-stat" id="densityLabel">96</span>
+        </div>
+
+        <ul class="note-list" aria-label="内容结构">
+          <li>封面：一句话结论，先让人知道为什么要点开。</li>
+          <li>正文：场景、步骤、动作，每屏只承担一个重点。</li>
+          <li>收尾：留下收藏理由，语气比口号更重要。</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const canvas = document.getElementById("cardCanvas");
+    const ctx = canvas.getContext("2d");
+    const titleInput = document.getElementById("titleInput");
+    const bodyInput = document.getElementById("bodyInput");
+    const footerInput = document.getElementById("footerInput");
+    const ratioGroup = document.getElementById("ratioGroup");
+    const templateGroup = document.getElementById("templateGroup");
+    const paletteGroup = document.getElementById("paletteGroup");
+    const fontSizeInput = document.getElementById("fontSizeInput");
+    const densityInput = document.getElementById("densityInput");
+    const fontSizeLabel = document.getElementById("fontSizeLabel");
+    const densityLabel = document.getElementById("densityLabel");
+    const sizeLabel = document.getElementById("sizeLabel");
+    const pageLabel = document.getElementById("pageLabel");
+    const countLabel = document.getElementById("countLabel");
+    const pageTabs = document.getElementById("pageTabs");
+    const toast = document.getElementById("toast");
+
+    const palettes = {
+      berry: { bg: "#fff7f5", bg2: "#ffe1e8", ink: "#2a2023", muted: "#7a5c61", accent: "#ff3f63", accent2: "#ffd76a", card: "#fffdf9" },
+      moss: { bg: "#f6fff8", bg2: "#d7f0df", ink: "#1e3028", muted: "#5d7165", accent: "#2f7d5a", accent2: "#ffcf5a", card: "#fffffb" },
+      ink: { bg: "#f7fbff", bg2: "#dce8ff", ink: "#1c2233", muted: "#5e6680", accent: "#426fe8", accent2: "#ff7b92", card: "#fffefd" },
+      sunset: { bg: "#fff8ea", bg2: "#ffe6a6", ink: "#30231d", muted: "#7b6557", accent: "#e15f3f", accent2: "#4a82e8", card: "#fffefa" }
+    };
+
+    const ratios = {
+      "3:4": [1080, 1440],
+      "4:5": [1080, 1350],
+      "1:1": [1080, 1080]
+    };
+
+    const state = {
+      ratio: "3:4",
+      template: "cover",
+      palette: "berry",
+      page: 0
+    };
+
+    function getPages() {
+      const raw = bodyInput.value.trim();
+      if (!raw) return [""];
+      const dividerPages = raw.split(/\n\s*---\s*\n/g).map((page) => page.trim()).filter(Boolean);
+      if (dividerPages.length > 1) return dividerPages;
+      return raw.split(/\n{2,}/g).map((page) => page.trim()).filter(Boolean);
+    }
+
+    function setPressed(group, selector, activeValue, dataName) {
+      group.querySelectorAll(selector).forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset[dataName] === activeValue));
+      });
+    }
+
+    function fitCanvas() {
+      const [width, height] = ratios[state.ratio];
+      canvas.width = width;
+      canvas.height = height;
+      sizeLabel.textContent = `${width} x ${height}`;
+    }
+
+    function roundedRect(x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + width, y, x + width, y + height, r);
+      ctx.arcTo(x + width, y + height, x, y + height, r);
+      ctx.arcTo(x, y + height, x, y, r);
+      ctx.arcTo(x, y, x + width, y, r);
+      ctx.closePath();
+    }
+
+    function drawBackground(palette) {
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, palette.bg);
+      gradient.addColorStop(0.72, palette.bg2);
+      gradient.addColorStop(1, palette.card);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.globalAlpha = 0.16;
+      ctx.fillStyle = palette.accent;
+      for (let y = 70; y < canvas.height; y += 150) {
+        for (let x = 66; x < canvas.width; x += 150) {
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawRibbon(palette, margin) {
+      ctx.save();
+      ctx.translate(canvas.width - margin - 110, margin - 24);
+      ctx.rotate(-0.12);
+      roundedRect(0, 0, 168, 48, 24);
+      ctx.fillStyle = palette.accent;
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 24px " + fontStack();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("RED NOTE", 84, 25);
+      ctx.restore();
+    }
+
+    function fontStack() {
+      return '"PingFang SC", "Microsoft YaHei", "Segoe UI", Arial, sans-serif';
+    }
+
+    function serifStack() {
+      return 'Georgia, "Songti SC", SimSun, serif';
+    }
+
+    function splitSmartLine(text) {
+      return String(text || "")
+        .replace(/[•·]/g, "\n")
+        .split(/\n/g)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    }
+
+    function wrapText(text, maxWidth, font) {
+      ctx.font = font;
+      const lines = [];
+      splitSmartLine(text).forEach((rawLine) => {
+        let line = "";
+        Array.from(rawLine).forEach((char) => {
+          const testLine = line + char;
+          if (ctx.measureText(testLine).width > maxWidth && line) {
+            lines.push(line);
+            line = char;
+          } else {
+            line = testLine;
+          }
+        });
+        if (line) lines.push(line);
+      });
+      return lines;
+    }
+
+    function drawTextLines(lines, x, y, lineHeight, color, align) {
+      ctx.fillStyle = color;
+      ctx.textAlign = align || "left";
+      ctx.textBaseline = "top";
+      lines.forEach((line, index) => {
+        ctx.fillText(line, x, y + index * lineHeight);
+      });
+    }
+
+    function drawCover(palette, pageText, margin) {
+      drawRibbon(palette, margin);
+      const titleSize = canvas.height < 1200 ? 78 : 92;
+      const bodySize = Number(fontSizeInput.value);
+      const maxWidth = canvas.width - margin * 2;
+      const titleLines = wrapText(titleInput.value || "未命名标题", maxWidth, `900 ${titleSize}px ${fontStack()}`).slice(0, 4);
+      const bodyLines = wrapText(pageText, maxWidth, `600 ${bodySize}px ${fontStack()}`).slice(0, 8);
+
+      ctx.fillStyle = palette.accent;
+      roundedRect(margin, margin + 34, 96, 18, 9);
+      ctx.fill();
+
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      drawTextLines(titleLines, margin, margin + 86, titleSize * 1.16, palette.ink, "left");
+
+      const bodyY = margin + 118 + titleLines.length * titleSize * 1.16;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+      roundedRect(margin - 10, bodyY - 22, maxWidth + 20, bodyLines.length * bodySize * 1.55 + 52, 8);
+      ctx.fill();
+      ctx.font = `600 ${bodySize}px ${fontStack()}`;
+      drawTextLines(bodyLines, margin, bodyY, bodySize * 1.55, palette.ink, "left");
+    }
+
+    function drawList(palette, pageText, margin) {
+      const titleSize = canvas.height < 1200 ? 58 : 66;
+      const bodySize = Number(fontSizeInput.value);
+      const maxWidth = canvas.width - margin * 2;
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      drawTextLines(wrapText(titleInput.value, maxWidth, ctx.font).slice(0, 3), margin, margin, titleSize * 1.12, palette.ink, "left");
+
+      const items = splitSmartLine(pageText).slice(0, 8);
+      let y = margin + 172;
+      items.forEach((item, index) => {
+        const lines = wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 110, `650 ${bodySize}px ${fontStack()}`).slice(0, 3);
+        const blockHeight = Math.max(88, lines.length * bodySize * 1.36 + 34);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.70)";
+        roundedRect(margin, y, maxWidth, blockHeight, 8);
+        ctx.fill();
+        ctx.fillStyle = palette.accent;
+        roundedRect(margin + 26, y + 24, 52, 52, 26);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `900 28px ${fontStack()}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(index + 1), margin + 52, y + 50);
+        ctx.font = `650 ${bodySize}px ${fontStack()}`;
+        drawTextLines(lines, margin + 104, y + 24, bodySize * 1.36, palette.ink, "left");
+        y += blockHeight + 18;
+      });
+    }
+
+    function drawQuote(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = canvas.height < 1200 ? 42 : 48;
+      const bodySize = Number(fontSizeInput.value) + 14;
+      ctx.fillStyle = palette.accent;
+      ctx.font = `900 132px ${serifStack()}`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("“", margin - 16, margin + 30);
+
+      const lines = wrapText(pageText || titleInput.value, maxWidth, `800 ${bodySize}px ${serifStack()}`).slice(0, 8);
+      const blockHeight = lines.length * bodySize * 1.34;
+      const y = Math.max(margin + 180, (canvas.height - blockHeight) / 2 - 40);
+      ctx.font = `800 ${bodySize}px ${serifStack()}`;
+      drawTextLines(lines, canvas.width / 2, y, bodySize * 1.34, palette.ink, "center");
+
+      ctx.font = `800 ${titleSize}px ${fontStack()}`;
+      const titleLines = wrapText(titleInput.value, maxWidth, ctx.font).slice(0, 2);
+      drawTextLines(titleLines, canvas.width / 2, y + blockHeight + 70, titleSize * 1.2, palette.muted, "center");
+    }
+
+    function drawSteps(palette, pageText, margin) {
+      const maxWidth = canvas.width - margin * 2;
+      const titleSize = canvas.height < 1200 ? 60 : 70;
+      const bodySize = Number(fontSizeInput.value);
+      ctx.fillStyle = palette.accent;
+      ctx.font = `900 28px ${fontStack()}`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("STEP BY STEP", margin, margin);
+
+      ctx.font = `900 ${titleSize}px ${fontStack()}`;
+      drawTextLines(wrapText(titleInput.value, maxWidth, ctx.font).slice(0, 3), margin, margin + 48, titleSize * 1.12, palette.ink, "left");
+
+      const items = splitSmartLine(pageText).slice(0, 5);
+      const startY = margin + 236;
+      items.forEach((item, index) => {
+        const y = startY + index * 156;
+        ctx.strokeStyle = index === items.length - 1 ? "transparent" : palette.accent;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(margin + 34, y + 62);
+        ctx.lineTo(margin + 34, y + 154);
+        ctx.stroke();
+        ctx.fillStyle = palette.accent;
+        ctx.beginPath();
+        ctx.arc(margin + 34, y + 36, 34, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `900 30px ${fontStack()}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(index + 1), margin + 34, y + 36);
+        ctx.font = `700 ${bodySize}px ${fontStack()}`;
+        drawTextLines(wrapText(item.replace(/^\d+[.、]\s*/, ""), maxWidth - 100, ctx.font).slice(0, 3), margin + 94, y + 10, bodySize * 1.36, palette.ink, "left");
+      });
+    }
+
+    function drawFooter(palette, margin) {
+      const footer = footerInput.value.trim() || "@yourname";
+      const y = canvas.height - margin + 24;
+      ctx.fillStyle = palette.muted;
+      ctx.font = `700 28px ${fontStack()}`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(footer, margin, y);
+      ctx.textAlign = "right";
+      ctx.fillText("收藏备用", canvas.width - margin, y);
+    }
+
+    function renderTabs(pageCount) {
+      pageTabs.innerHTML = "";
+      for (let i = 0; i < pageCount; i += 1) {
+        const button = document.createElement("button");
+        button.className = "page-tab";
+        button.type = "button";
+        button.textContent = String(i + 1);
+        button.dataset.page = String(i);
+        button.setAttribute("aria-pressed", String(i === state.page));
+        pageTabs.appendChild(button);
+      }
+    }
+
+    function render() {
+      const pages = getPages();
+      if (state.page >= pages.length) state.page = pages.length - 1;
+      const pageText = pages[state.page] || "";
+      const palette = palettes[state.palette];
+      const margin = Number(densityInput.value);
+
+      fitCanvas();
+      drawBackground(palette);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
+      roundedRect(margin - 28, margin - 28, canvas.width - (margin - 28) * 2, canvas.height - (margin - 28) * 2, 8);
+      ctx.fill();
+
+      if (state.template === "cover") drawCover(palette, pageText, margin);
+      if (state.template === "list") drawList(palette, pageText, margin);
+      if (state.template === "quote") drawQuote(palette, pageText, margin);
+      if (state.template === "steps") drawSteps(palette, pageText, margin);
+      drawFooter(palette, margin);
+
+      renderTabs(pages.length);
+      pageLabel.textContent = `第 ${state.page + 1} / ${pages.length} 页`;
+      fontSizeLabel.textContent = fontSizeInput.value;
+      densityLabel.textContent = densityInput.value;
+      countLabel.textContent = `${(titleInput.value + bodyInput.value).replace(/\s/g, "").length} 字`;
+    }
+
+    function downloadPng() {
+      const link = document.createElement("a");
+      const title = (titleInput.value || "xiaohongshu-card").trim().replace(/[\\/:*?"<>|]+/g, "-").slice(0, 24);
+      link.download = `${title}-p${state.page + 1}.png`;
+      link.href = canvas.toDataURL("image/png");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast("当前图片已下载");
+    }
+
+    async function copyText() {
+      const text = `${titleInput.value}\n\n${bodyInput.value}\n\n${footerInput.value}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("标题正文已复制");
+      } catch (error) {
+        bodyInput.focus();
+        showToast("浏览器限制复制，请手动复制正文");
+      }
+    }
+
+    function loadSample() {
+      titleInput.value = "周末低成本充电计划";
+      bodyInput.value = "给自己留 3 个小时：\n1. 关掉通知，出门散步 30 分钟\n2. 找一家安静咖啡店，写下这周最消耗你的事\n3. 只处理一个最小问题，不追求立刻翻盘\n\n---\n\n真正让人恢复的不是躺平一整天，而是重新拿回一点掌控感。";
+      footerInput.value = "@AndyCrow";
+      state.page = 0;
+      render();
+      showToast("已填入示例文案");
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    [titleInput, bodyInput, footerInput, fontSizeInput, densityInput].forEach((input) => {
+      input.addEventListener("input", render);
+    });
+
+    ratioGroup.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-ratio]");
+      if (!button) return;
+      state.ratio = button.dataset.ratio;
+      setPressed(ratioGroup, "button", state.ratio, "ratio");
+      render();
+    });
+
+    templateGroup.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-template]");
+      if (!button) return;
+      state.template = button.dataset.template;
+      setPressed(templateGroup, "button", state.template, "template");
+      render();
+    });
+
+    paletteGroup.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-palette]");
+      if (!button) return;
+      state.palette = button.dataset.palette;
+      setPressed(paletteGroup, "button", state.palette, "palette");
+      render();
+    });
+
+    pageTabs.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-page]");
+      if (!button) return;
+      state.page = Number(button.dataset.page);
+      render();
+    });
+
+    document.getElementById("downloadButton").addEventListener("click", downloadPng);
+    document.getElementById("copyTextButton").addEventListener("click", copyText);
+    document.getElementById("sampleButton").addEventListener("click", loadSample);
+
+    render();
+  </script>
+</body>
+</html>
