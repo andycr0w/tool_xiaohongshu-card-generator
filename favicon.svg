@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>小红书文字转图片生成器</title>
+  <rect width="64" height="64" rx="14" fill="#faf7f2"/>
+  <rect x="10" y="14" width="38" height="40" rx="5" fill="#d82649" transform="rotate(-7 29 34)"/>
+  <rect x="17" y="9" width="38" height="44" rx="5" fill="#ff3f63"/>
+  <path d="M43 9h12v15l-6-4-6 4V9Z" fill="#ffd76a"/>
+  <path d="M25 29h21M25 37h16M25 45h12" fill="none" stroke="#fffdf9" stroke-width="5" stroke-linecap="round"/>
+</svg>
