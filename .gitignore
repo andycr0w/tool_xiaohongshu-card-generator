@@ -1,0 +1,21 @@
+# Dependencies and generated test artifacts
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+coverage/
+/desktop-check.png
+
+# Local caches and temporary output
+.cache/
+.npm/
+/tmp/
+/temp/
+*.log
+.DS_Store
+Thumbs.db
+
+# Local configuration; examples belong in source control
+.env
+.env.*
+!.env.example

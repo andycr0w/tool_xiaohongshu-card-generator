@@ -1,0 +1,14 @@
+{
+  "name": "xiaohongshu-free-canvas",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/editor.spec.cjs && node tests/toolbar.spec.cjs && node tests/panels.spec.cjs && node tests/workspace.spec.cjs",
+    "test:toolbar": "node tests/toolbar.spec.cjs",
+    "test:panels": "node tests/panels.spec.cjs",
+    "test:workspace": "node tests/workspace.spec.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}

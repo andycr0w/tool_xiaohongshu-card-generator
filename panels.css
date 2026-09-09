@@ -1,0 +1,217 @@
+/* Spacious inspector and a single mobile sheet interaction model. */
+.properties {
+  --tool-icon: 20px;
+  --tool-primary-icon: 20px;
+  --tool-align-icon: 20px;
+  --tool-helper-icon: 16px;
+  --tool-height: 36px;
+  --tool-primary-height: 40px;
+  --tool-ink: #252735;
+  --tool-label: #626b7c;
+  --heading-actions-width: 64px;
+}
+.properties .control-icon { width: var(--tool-icon); height: var(--tool-icon); stroke-width: 1.8; }
+.properties .object-actions .control-icon { width: var(--tool-primary-icon); height: var(--tool-primary-icon); color: currentColor; }
+.properties .object-actions button { color: var(--tool-ink); }
+.properties .info-button .control-icon { width: var(--tool-helper-icon); height: var(--tool-helper-icon); }
+.properties .unit-field { display: flex; align-items: center; min-width: 0; border: 1px solid transparent; border-radius: 7px; background: #f0f3f8; }
+.properties .unit-field > input { flex: 1; width: 0; min-width: 0; border: 0; background: transparent; border-radius: 6px; }
+.properties .unit-field .field-unit { flex: none; width: 18px; text-align: center; font-size: 12px; color: var(--tool-label); pointer-events: none; }
+.properties .unit-field:focus-within { background: #fff; border-color: #dc5575; outline: 2px solid #df3d601a; outline-offset: 1px; }
+.properties .unit-field > input:focus { outline: none; background: transparent; }
+.properties .unit-field:has(input:disabled) { background: #edf0f5; }
+.properties input[type="number"] { font-variant-numeric: tabular-nums; }
+.home-link { width: 36px; height: 36px; min-height: 36px; padding: 8px; justify-content: center; }
+.properties .panel-head { padding: 12px 14px 8px; min-height: 42px; }
+.inspector-tabs { display: flex; flex: none; margin: 0 12px 8px; padding: 3px; gap: 3px; border-radius: 8px; background: #e9edf4; }
+.inspector-tabs button { flex: 1; min-height: 30px; padding: 4px 8px; border: 1px solid transparent; background: transparent; font-size: 13px; }
+.inspector-tabs button[aria-selected="true"] { background: #fff; color: #b72e51; border-color: #e3d2d9; }
+.properties-body { display: flex; flex-direction: column; padding: 0; overflow: hidden; min-height: 0; }
+.inspector-view { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 0 12px 12px; }
+.properties .selection-heading { min-height: 28px; margin: 0 0 4px; }
+.properties .selection-heading .danger { min-height: 28px; padding: 2px 5px; }
+#attributesView { display: flex; flex-direction: column; overflow: hidden; }
+#selectedProperties { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+#propertySettings { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+#emptySelection { overflow: auto; }
+.selection-tools { flex: none; background: #fff; padding: 4px 0 8px; border-bottom: 1px solid var(--line); }
+.selection-tools #editTextButton { margin-top: 8px; min-height: 36px; justify-content: center; }
+.inspector-view details { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 4px; }
+.inspector-view summary { cursor: pointer; min-height: 36px; padding: 8px 0; font-size: 14px; font-weight: 600; color: var(--ink); }
+.inspector-view summary:focus-visible, .tip summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.object-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.object-actions button { min-height: var(--tool-primary-height); padding: 7px 12px; justify-content: flex-start; gap: 8px; }
+.properties section:not(.layers-section) { background: transparent; border: 0; border-top: 1px solid #e7eaf0; border-radius: 0; padding: 12px 0 0; margin-top: 12px; }
+.properties .section-heading { min-height: 36px; margin-bottom: 5px; gap: 8px; }
+.properties .section-heading h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--tool-ink); }
+.properties .section-heading, .properties .selection-heading { display: grid; grid-template-columns: minmax(0,1fr) var(--heading-actions-width); align-items: center; column-gap: 0; }
+.properties .section-heading > h3, .properties .selection-heading > strong { grid-column: 1; min-width: 0; text-align: center; }
+.properties .section-heading > button, .properties .section-heading > div, .properties .selection-heading > button { grid-column: 2; justify-self: end; }
+.properties .selection-heading > .danger, .properties .section-heading > .info-button { justify-self: end; margin-right: 0; }
+.properties .section-heading > div { display: flex; gap: 0; }
+.properties .section-heading .info-button { width: 28px; min-width: 28px; min-height: 28px; padding: 2px; border: 0; border-radius: 50%; background: transparent; color: var(--tool-label); display: inline-flex; align-items: center; justify-content: center; }
+.properties .field { display: flex; flex-direction: column; align-items: stretch; gap: 8px; font-size: 13px; font-weight: 400; color: var(--tool-label); white-space: nowrap; min-width: 0; margin: 0 0 8px; line-height: 1.4; }
+.properties .field > input, .properties .field > select, .properties .unit-field > input { flex: none; width: 100%; min-width: 0; min-height: 36px; padding: 4px 6px; font-size: 14px; line-height: 1.4; }
+.properties .field > input[type="color"] { padding: 3px; }
+.properties .field-pair { gap: 0 8px; }
+.properties .segmented { padding: 2px; border-radius: 6px; gap: 2px; }
+.properties .segmented button { min-height: var(--tool-height); padding: 3px; color: var(--tool-ink); }
+.properties .formatting { margin-bottom: 6px; }
+.properties .paragraph-field { display: flex; }
+.properties .paragraph-align { width: 100%; }
+
+.properties .align-buttons { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; padding: 4px; background: #e9edf4; border: 1px solid #dfe4ee; border-radius: 8px; }
+.properties .align-buttons button { min-height: 60px; padding: 6px 2px; gap: 5px; flex-direction: column; font-size: 13px; line-height: 1.3; white-space: nowrap; color: var(--tool-ink); background: transparent; border: 1px solid transparent; border-radius: 6px; }
+.properties .align-buttons .control-icon { width: var(--tool-align-icon); height: var(--tool-align-icon); }
+.properties .object-actions button[aria-pressed="true"] { color: #b8294d; background: #ffe8ef; border-color: #f1bdcb; }
+.properties .align-buttons button[aria-pressed="true"] { color: #b8294d; background: #fff; border-color: #e6cbd4; box-shadow: 0 1px 3px #3528400d; }
+.properties .align-heading { margin: 16px 0 8px; }
+.properties .button-row button { min-height: 32px; }
+.properties .layers-section { border: 0; margin: 0; padding: 0 12px 12px; }
+.layers-section .section-heading { position: sticky; top: 0; background: #fff; z-index: 1; padding: 4px 0; }
+.layer { min-height: 34px; }
+#controlTooltip { position: fixed; z-index: 80; padding: 9px 12px; border-radius: 8px; background: #303545; color: #fff; box-shadow: 0 5px 20px #25273524; font-size: 12px; line-height: 1.65; white-space: normal; overflow-wrap: anywhere; pointer-events: auto; }
+.sheet-grabber, #sheetBackdrop { display: none; }
+@media (max-width:1100px) and (min-width:761px) {
+  .home-link { width: 36px; height: 36px; padding: 8px; }
+  .properties-body { padding: 0; }
+  .properties section:not(.layers-section) { padding: 12px 0 0; }
+  .properties .field-pair { gap: 0 8px; }
+  .inspector-view { padding-left: 10px; padding-right: 10px; }
+}
+/* Desktop density: preserve readable type and labeled controls. */
+@media (min-width:761px) {
+  #selectedProperties { width: 100%; }
+  .properties { --tool-height: 36px; --tool-primary-height: 36px; }
+  .properties .panel-head { display: none; }
+  .inspector-tabs { margin-top: 8px; }
+  .inspector-tabs { margin-bottom: 4px; }
+  .properties .selection-heading { min-height: 24px; margin-bottom: 8px; }
+  .properties .selection-heading .danger { min-height: 36px; }
+  .object-actions { gap: 6px 8px; }
+  .object-actions button { padding: 4px 10px; }
+  .properties section:not(.layers-section) { margin-top: 6px; padding-top: 6px; }
+  .properties section.geometry-section { margin-top: 12px; padding-top: 10px; }
+  .properties .section-heading { min-height: 24px; margin-bottom: 2px; }
+  .properties .section-heading .info-button { min-height: 24px; min-width: 24px; width: 24px; }
+  .properties .field { gap: 2px; margin-bottom: 3px; line-height: 1.3; }
+  .properties .segmented button, .properties .button-row button { min-height: 36px; }
+  .properties .field > input, .properties .field > select, .properties .unit-field > input { min-height: 36px; height: 36px; padding: 3px 6px; }
+  .properties .field-pair { grid-template-columns: repeat(2,minmax(0,96px)); column-gap: 12px; }
+  .properties .field > select { max-width: 204px; }
+  .properties .field > input[type="color"] { width: 44px; padding: 3px; }
+  .properties .object-actions { grid-template-columns: repeat(2,minmax(0,96px)); gap: 6px 12px; }
+  .properties .formatting { width: 132px; max-width: 100%; }
+  .properties .field-pair:has(.paragraph-field) { grid-template-columns: minmax(0,112px) minmax(0,80px); }
+  .properties .align-buttons { max-width: 228px; }
+  .properties #imageProperties .button-row { max-width: 204px; }
+  .properties .formatting { margin-bottom: 4px; }
+  .properties .align-heading { margin: 14px 0 6px; }
+  .properties .align-buttons { gap: 4px 6px; padding: 4px; }
+  .properties .align-buttons button { min-height: 46px; padding: 3px 2px; gap: 2px; }
+  .inspector-view { padding-bottom: 6px; }
+}
+@media (max-width:760px) {
+  .properties { --heading-actions-width: 88px; }
+  .properties .layers-section .section-heading > div button { width: 44px; min-width: 44px; min-height: 44px; }
+  .properties { --tool-primary-height: 44px; --tool-height: 44px; }
+  .panel button, .mobile-dock button, .topbar button, .topbar a { -webkit-tap-highlight-color: transparent; }
+  .topbar { display: flex; height: 60px; padding: 6px 8px; gap: 6px; }
+  .home-link { width: 44px; height: 44px; min-height: 44px; padding: 12px; flex: none; }
+  .home-link svg { width: 18px; height: 18px; }
+  .brand { font-size: 15px; gap: 5px; min-width: 0; }
+  .brand > span:last-child { white-space: nowrap; }
+  .top-actions { margin-left: auto; gap: 2px; }
+  .top-actions button { min-height: 44px; padding: 6px; }
+  .top-actions .primary { font-size: 12px; white-space: nowrap; }
+  .workspace { height: calc(100dvh - 120px - env(safe-area-inset-bottom)); }
+  .mobile-dock { bottom: var(--keyboard-offset,0px); }
+  #sheetBackdrop { display: block; position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom) + var(--keyboard-offset,0px)); z-index: 9; background: #2830431f; border: 0; border-radius: 0; padding: 0; opacity: 0; pointer-events: none; transition: opacity 220ms ease; }
+  #sheetBackdrop.visible { opacity: 1; pointer-events: auto; }
+  .panel, .panel.open { display: none; }
+  .panel.sheet-mounted {
+    display: flex; position: fixed; left: 0; right: 0;
+    bottom: calc(60px + env(safe-area-inset-bottom) + var(--keyboard-offset,0px));
+    height: var(--sheet-full-height); max-height: none;
+    padding-bottom: var(--sheet-hidden-height,0px);
+    transform: translateY(var(--sheet-hidden-height,0px));
+    border: 1px solid #e4e7ef; border-bottom: 0; border-radius: 20px 20px 0 0;
+    box-shadow: 0 -6px 30px #25273518; overflow: hidden; will-change: transform;
+    z-index: 10;
+  }
+  .sheet-grabber { display: flex; flex: none; width: 100%; height: 44px; min-height: 44px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 0; background: transparent; touch-action: none; }
+  .sheet-grabber::before { content: ""; width: 36px; height: 4px; border-radius: 4px; background: #bbc0cd; }
+  .sheet-grabber:hover, .sheet-grabber:active { background: transparent; border: 0; }
+  .sheet-grabber:focus-visible { outline: 2px solid var(--accent); outline-offset: -5px; }
+  .panel .panel-head { padding: 0 16px 4px; min-height: 44px; flex: none; touch-action: none; }
+  .panel .panel-head h2 { font-size: 15px; }
+  .panel .panel-head > button { min-width: 44px; min-height: 44px; font-size: 22px; }
+  .properties-body { padding: 0; }
+  .inspector-tabs { margin: 0 16px 6px; padding: 2px; }
+  .inspector-tabs button { min-height: 44px; }
+  .inspector-view { padding: 0 16px 16px; }
+  .panel .asset-content { flex: 1; min-height: 0; overscroll-behavior: contain; padding: 8px 16px 16px; }
+  .panel .asset-tabs { flex: none; margin: 0 16px 6px; }
+  .panel .asset-tabs button { min-height: 44px; }
+  .selection-tools #editTextButton, .inspector-view summary { min-height: 44px; }
+
+  .properties .selection-heading { min-height: 44px; margin-bottom: 4px; }
+  .properties .selection-heading .danger { min-height: 44px; }
+  .object-actions button { min-height: 44px; }
+  .properties section:not(.layers-section) { padding: 12px 0 0; margin-top: 12px; }
+  .properties .section-heading { min-height: 44px; margin-bottom: 4px; }
+  .properties .section-heading .info-button { min-height: 44px; min-width: 44px; width: 44px; }
+  .properties .field { gap: 8px; margin-bottom: 8px; }
+  .properties .field > input, .properties .field > select, .properties .unit-field > input { min-height: 44px; font-size: 16px; }
+  .properties .segmented button, .properties .align-buttons button, .properties .paragraph-align button, .properties .button-row button { min-height: 44px; }
+  .properties .align-buttons button { min-height: 64px; }
+  .properties .paragraph-align button { min-width: 44px; }
+  .properties .field-pair:has(.paragraph-field) { grid-template-columns: minmax(144px,1.2fr) minmax(0,1fr); }
+  .properties .layers-section { padding: 0 16px 16px; }
+  .layer button, .layer button:last-child { min-height: 44px; }
+  .layer button:last-child { min-width: 44px; }
+}
+@media (max-width:359px) {
+  .brand-mark { display: none; }
+  .brand { font-size: 14px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #sheetBackdrop { transition: none; }
+  .panel.sheet-mounted { will-change: auto; }
+}
+
+/* Page actions have a stable row independent of thumbnail count. */
+.pages-bar { gap: 10px; }
+.pages { flex: 1; }
+.page-actions { max-width: none; flex-wrap: nowrap; gap: 5px; }
+.page-actions button { width: 36px; height: 36px; min-height: 36px; padding: 6px; border-color: #e1e5ed; background: #f8f9fc; }
+.page-actions .control-icon { width: 19px; height: 19px; }
+.page-actions button:not(:disabled):hover, .page-actions button:not(:disabled):focus-visible { color: #b72e51; background: #fff0f4; border-color: #edbbc9; }
+.page-actions [data-action="deletePage"]:not(:disabled):hover, .page-actions [data-action="deletePage"]:not(:disabled):focus-visible { color: #bc2445; background: #ffe9ef; }
+.page-actions button:not(:disabled):active .control-icon { transform: scale(.9); }
+@media(max-width:760px) {
+  .pages-bar { display: grid; grid-template-columns: minmax(0,1fr) 44px; grid-template-rows: 63px 44px; gap: 8px; padding: 8px 12px; min-height: 131px; }
+  .pages { grid-column: 1; grid-row: 1; }
+  .add-page { grid-column: 2; grid-row: 1; width: 44px; height: 54px; }
+  .page-count { grid-column: 1; grid-row: 2; justify-self: start; }
+  .page-actions { grid-column: 1 / -1; grid-row: 2; max-width: none; margin: 0; justify-self: end; justify-content: flex-end; gap: 8px; }
+  .page-actions button { width: 44px; height: 44px; min-height: 44px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .page-actions button:not(:disabled):active .control-icon { transform: none; }
+}
+
+
+.properties .unit-field > input { flex: 1; width: 0; min-width: 0; }
+/* Share the tab's outer edge while keeping the scrollbar in the panel inset. */
+.properties { --inspector-inset: 12px; }
+.properties .inspector-tabs { margin-left: var(--inspector-inset); margin-right: calc(var(--inspector-inset) + var(--inspector-scrollbar,0px)); }
+.properties .inspector-view { margin-right: calc(var(--inspector-inset) - 4px); padding-left: var(--inspector-inset); padding-right: 4px; scrollbar-gutter: stable; }
+.properties #textProperties { display: grid; row-gap: 10px; }
+.properties #textProperties .field { gap: 4px; margin-bottom: 0; }
+.properties #textProperties .section-heading, .properties #textProperties .formatting { margin: 0; }
+@media(max-width:760px) {
+  .properties { --inspector-inset: 16px; }
+  .properties #textProperties { row-gap: 12px; }
+}
