@@ -236,12 +236,17 @@
   window.visualViewport?.addEventListener('scroll', resize);
   resize();
   syncEntries();
-  // Native scrollbars vary across platforms; share their reserved width with tabs.
-  const inspectorViews=[...document.querySelectorAll('.inspector-view')];
-  const inspectorResize=new ResizeObserver(()=>{
-    const visible=inspectorViews.find(view=>view.getClientRects().length);
-    if(visible)document.getElementById('propertiesPanel').style.setProperty('--inspector-scrollbar',(visible.offsetWidth-visible.clientWidth)+'px');
+  // Put the native scrollbar in the panel inset, not in the control grid.
+  // Keep the measurement while hidden; overlay scrollbars naturally measure zero.
+  const settings = document.getElementById('propertySettings');
+  let settingsScrollbar = -1;
+  const inspectorResize = new ResizeObserver(() => {
+    if (!settings.getClientRects().length) return;
+    const width = Math.max(0, settings.offsetWidth - settings.clientWidth);
+    if (width === settingsScrollbar) return;
+    settingsScrollbar = width;
+    settings.style.setProperty('--settings-scrollbar', width + 'px');
   });
-  inspectorViews.forEach(view=>inspectorResize.observe(view));
+  inspectorResize.observe(settings);
   window.SheetUI = {open, toggle, close, inspectorTab, setEntry(entry){if(active?.id==='assetsPanel'){activeEntry=entry;syncEntries();}}};
 })();

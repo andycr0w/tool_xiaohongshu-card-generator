@@ -72,7 +72,7 @@ async function run(){
     assert.equal(o.text,'图标选区测试');assert.equal(o.textAlign,'center');assert.equal(o.styles[0].start,0);assert.equal(o.styles[0].end,2);assert.equal(o.styles[0].style.fontStyle,'italic');
     assert.equal(await p.locator('[data-text-align="center"]').getAttribute('aria-pressed'),'true');
     await p.keyboard.press('Escape');await selectTop(p);
-    await p.locator('#alignmentDetails summary').click();await p.locator('[data-align="center"]').click();await wait(p);
+    await p.locator('[data-align="center"]').click();await wait(p);
     assert.equal(await p.locator('[data-align="center"]').getAttribute('aria-pressed'),'true');
     for(const align of ['left','center','right','top','middle','bottom']){
       await p.locator('[data-align="'+align+'"]').click();await wait(p);
@@ -118,17 +118,17 @@ async function run(){
       assert.ok(metrics.input>=(spec.mobile?16:14));assert.ok(metrics.label>=13);assert.ok(metrics.hint>=12);assert.equal(metrics.transform,'none');
       const edge=await q.locator('.inspector-tabs').evaluate(e=>e.getBoundingClientRect().right);
       for(const control of await q.locator('#selectedProperties .info-button:visible, #selectedProperties .selection-heading .danger').all()){
-        const r=await control.boundingBox();assert.ok(Math.abs(r.x+r.width-edge)<1,spec.name+' right actions align to tab edge');
+        const r=await control.boundingBox();assert.ok(r.x+r.width<=edge+1&&r.width>=24,spec.name+' header actions stay within panel');
       }
       const gaps=await q.locator('#textProperties').evaluate(e=>({group:getComputedStyle(e).rowGap,field:getComputedStyle(e.querySelector('.field')).gap}));
-      assert.equal(gaps.group,spec.mobile?'12px':'10px');assert.equal(gaps.field,'4px');
-      await q.locator('#alignmentDetails summary').click();await q.locator('[data-align="bottom"]').scrollIntoViewIfNeeded();
+      assert.equal(gaps.group,'12px');assert.equal(gaps.field,'6px');
+      await q.locator('[data-align="bottom"]').scrollIntoViewIfNeeded();
       const icons=await q.locator('.align-buttons button').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect(),svg=e.querySelector('svg').getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,icon:svg.width};}));
-      assert.equal(icons.length,6);assert.equal(new Set(icons.map(r=>r.y)).size,2);
-      assert.ok(icons.every(r=>r.icon===20&&r.h>=(spec.mobile?64:46)&&r.x>=0&&r.x+r.w<=spec.w));
+      assert.equal(icons.length,6);assert.equal(new Set(icons.map(r=>r.y)).size,1);
+      assert.ok(icons.every(r=>r.icon===18&&r.h>=(spec.mobile?44:36)&&r.x>=0&&r.x+r.w<=spec.w));
       if(spec.mobile)assert.ok(icons.every(r=>r.w>=44));
       const labels=await q.locator('.align-buttons .control-label, .object-actions button:visible .control-label').evaluateAll(es=>es.map(e=>({hidden:e.classList.contains('sr-only'),fits:e.scrollWidth<=e.clientWidth,help:e.parentElement.hasAttribute('data-help')})));
-      assert.ok(labels.every(e=>!e.hidden&&e.fits&&!e.help));
+      assert.ok(labels.every(e=>e.hidden?e.help:e.fits&&!e.help),'icon alignment has accessible names and tooltips; action labels fit');
       const rows=await q.locator('.object-actions button:visible').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().y));
       assert.equal(new Set(rows).size,1);
       assert.equal(await q.locator('.info-button svg').first().evaluate(e=>e.getBoundingClientRect().width),16);

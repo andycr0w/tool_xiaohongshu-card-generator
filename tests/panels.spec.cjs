@@ -24,7 +24,7 @@ async function doc(p){
   return p.evaluate(()=>new Promise(resolve=>{const r=indexedDB.open('xiaohongshu-free-canvas',1);r.onsuccess=()=>{const db=r.result,q=db.transaction('draft').objectStore('draft').get('current');q.onsuccess=()=>{resolve(q.result);db.close();};};}));
 }
 async function fits(p){
-  for(const id of ['geometryDetails','alignmentDetails'])if(await p.locator('#'+id).getAttribute('open')===null)await p.locator('#'+id+' summary').click();
+  for(const id of ['geometryDetails'])if(await p.locator('#'+id).getAttribute('open')===null)await p.locator('#'+id+' summary').click();
   const size=await p.locator('#propertySettings').evaluate(e=>({height:e.clientHeight,scroll:e.scrollHeight}));
   assert.ok(size.height>0,'properties have a usable scrolling area');
   await p.locator('[data-align="bottom"]').scrollIntoViewIfNeeded();
@@ -87,7 +87,7 @@ async function run(){
     await p.setViewportSize({width:1000,height:420});
     await p.locator('[data-action="addText"]').click();await saved(p);
     const overflow=await p.locator('#propertySettings').evaluate(e=>e.scrollHeight>e.clientHeight);
-    assert.ok(overflow);await p.locator('[data-align="bottom"]').scrollIntoViewIfNeeded();
+    assert.ok(overflow);await p.locator('#objectOpacity').scrollIntoViewIfNeeded();
     assert.ok(await p.locator('#propertySettings').evaluate(e=>e.scrollTop>0));
     // Page actions preserve confirmation, order boundaries, undo and saved pages.
     const action=a=>p.locator('[data-action="'+a+'"]');

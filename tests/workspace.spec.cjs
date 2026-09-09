@@ -16,6 +16,36 @@ const server=http.createServer(async(req,res)=>{
 const saved=async p=>{await p.locator('#busy').waitFor({state:'hidden'});await p.waitForFunction(()=>document.getElementById('saveStatus').textContent==='已保存到此浏览器');};
 const draft=p=>p.evaluate(()=>new Promise(resolve=>{const r=indexedDB.open('xiaohongshu-free-canvas',1);r.onsuccess=()=>{const db=r.result,q=db.transaction('draft').objectStore('draft').get('current');q.onsuccess=()=>{resolve(q.result);db.close();};};}));
 const height=p=>p.locator('.upper-canvas').evaluate(e=>e.getBoundingClientRect().height);
+async function stableInspector(p,label){
+  const details=p.locator('#geometryDetails');
+  const snapshot=()=>p.evaluate(()=>[...document.querySelectorAll('#fontFamily,#fontSize,#textColor,#textAlign,#lineHeight,.formatting,.align-buttons button,.selection-tools,.object-actions button:enabled')].map(el=>{
+    const r=el.getBoundingClientRect();return {x:r.x,width:r.width};
+  }));
+  const settled=()=>p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  if(await details.getAttribute('open')!==null)await details.locator('summary').click();
+  await settled();const before=await snapshot();
+  for(let i=0;i<3;i++){
+    await details.locator('summary').click();await settled();
+    const after=await snapshot();
+    after.forEach((r,j)=>{assert.ok(Math.abs(r.x-before[j].x)<=1,label+' control moved horizontally');assert.ok(Math.abs(r.width-before[j].width)<=1,label+' control width changed');});
+  }
+  await p.locator('#objectOpacity').scrollIntoViewIfNeeded();
+  const bounds=await p.evaluate(()=>{
+    const settings=document.getElementById('propertySettings'),field=document.getElementById('objectOpacity').getBoundingClientRect();
+    const r=settings.getBoundingClientRect(),top=document.querySelector('.selection-tools').getBoundingClientRect();
+    return {overflow:settings.scrollHeight>settings.clientHeight,fieldBottom:field.bottom,bottom:r.bottom,
+      contentRight:r.left+settings.clientWidth,headerRight:top.right,gutter:settings.offsetWidth-settings.clientWidth,
+      viewportWidth:document.documentElement.scrollWidth};
+  });
+  assert.ok(bounds.overflow,label+' exercises a real overflow transition');
+  assert.ok(bounds.fieldBottom<=bounds.bottom+1,label+' last field reachable');
+  assert.ok(Math.abs(bounds.contentRight-bounds.headerRight)<=1,label+' controls align with fixed header');
+  await p.locator('#objectOpacity').focus();
+  assert.equal(await p.locator('#objectOpacity').evaluate(el=>getComputedStyle(el.closest('.unit-field')).outlineOffset),'-2px');
+  await p.screenshot({path:path.join(root,'test-results/workspace','scroll-'+label.replace(/[^a-z0-9]/gi,'-')+'.png')});
+  await details.locator('summary').click();await settled();
+  await p.locator('#propertySettings').evaluate(el=>el.scrollTop=0);
+}
 async function exportCurrent(p,file){
   await p.locator('[data-action="export"]').click();
   const download=p.waitForEvent('download');await p.locator('[data-action="exportCurrent"]').click();
@@ -36,6 +66,31 @@ async function run(){
     assert.ok(normalHeight>=(720-76-57-28-106-56)*1.1,'at least 10% more canvas height');
     assert.equal(await p.locator('#zoomLabel').inputValue(),'fit');
     await p.screenshot({path:path.join(out,'desktop-1280.png')});
+    const title=initial.pages[0].scene.objects.find(o=>o.text?.includes('把日子'));
+    assert.ok(title);
+    const canvasBox=await p.locator('.upper-canvas').boundingBox();
+    await p.mouse.click(canvasBox.x+(title.left+20)*canvasBox.width/1080,canvasBox.y+(title.top+title.fontSize/2)*canvasBox.height/1440);
+    assert.ok(await p.locator('#editTextButton').isVisible());
+    assert.ok(await p.locator('[data-align="center"]').isVisible());
+    const controls=await p.evaluate(()=>{
+      const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {x:r.x,width:r.width,height:r.height};};
+      return {font:box('fontFamily'),size:box('fontSize'),color:box('textColor'),
+        styleBox:(()=>{const r=document.querySelector('.formatting').getBoundingClientRect();return {width:r.width,height:r.height};})(),
+        paragraph:box('textAlign'),line:box('lineHeight')};
+    });
+    assert.equal(controls.font.height,36);assert.equal(controls.size.height,36);assert.equal(controls.color.height,36);
+    assert.equal(controls.styleBox.height,36);assert.equal(controls.paragraph.height,36);assert.equal(controls.line.height,36);
+    assert.ok(Math.abs(controls.font.width-controls.styleBox.width)<1);
+    assert.ok(Math.abs(controls.size.width-controls.color.width)<1);
+    assert.ok(Math.abs(controls.paragraph.width-controls.line.width)<1);
+    await p.screenshot({path:path.join(out,'inspector-1280.png')});
+    await stableInspector(p,'1280x720');
+    await p.setViewportSize({width:1440,height:900});await stableInspector(p,'1440x900');
+    // Exercise the fallback independently of the browser's feature support.
+    const fallback=await p.addStyleTag({content:'#propertySettings{scrollbar-gutter:auto;overflow-y:scroll}'});
+    await stableInspector(p,'legacy scrollbar fallback');await fallback.evaluate(el=>el.remove());
+    await p.setViewportSize({width:1280,height:720});
+    await p.keyboard.press('Escape');
     const originalPNG=await exportCurrent(p,path.join(out,'before-view.png'));
     await p.locator('[data-action="beginTemplates"]').click();
     assert.equal(await p.locator('[data-tab="templates"]').getAttribute('aria-selected'),'true');
@@ -66,13 +121,13 @@ async function run(){
     });
     assert.ok(contrast.every(x=>x.ratio>=4.5),JSON.stringify(contrast));
     assert.equal(await p.locator('#geometryDetails').getAttribute('open'),null);
-    assert.equal(await p.locator('#alignmentDetails').getAttribute('open'),null);
+    assert.ok(await p.locator('[data-align="center"]').isVisible(),'alignment available without opening a menu');
     assert.equal(await p.locator('#groupButton').isVisible(),false);assert.equal(await p.locator('#ungroupButton').isVisible(),false);
-    await p.locator('#geometryDetails summary').click();await p.locator('#alignmentDetails summary').click();
+    await p.locator('#geometryDetails summary').click();
     const added=await draft(p);
     await p.locator('#focusMode').click();await p.locator('#focusMode').click();
     assert.notEqual(await p.locator('#geometryDetails').getAttribute('open'),null);
-    assert.notEqual(await p.locator('#alignmentDetails').getAttribute('open'),null);
+    assert.ok(await p.locator('[data-align="center"]').isVisible());
     assert.deepEqual(await draft(p),added);
     await p.locator('#editTextButton').click();await p.waitForFunction(()=>document.activeElement?.tagName==='TEXTAREA');
     await p.keyboard.insertText('明确的编辑入口');await p.keyboard.press('Escape');await saved(p);
@@ -98,7 +153,11 @@ async function run(){
     await m.screenshot({path:path.join(out,'mobile-390.png')});
     await m.locator('[data-action="showProperties"]').tap();
     await m.locator('[data-action="beginText"]').tap();await saved(m);await m.locator('.sheet-mounted').waitFor({state:'detached'});
-    await m.locator('[data-action="showProperties"]').tap();await m.locator('#editTextButton').tap();
+    await m.locator('[data-action="showProperties"]').tap();
+    await m.locator('#propertiesPanel .sheet-grabber').tap();
+    await m.waitForFunction(()=>[...document.querySelectorAll('.sheet-mounted')].every(el=>el.getAnimations().length===0));
+    await stableInspector(m,'390x844');
+    await m.locator('#editTextButton').tap();
     await m.waitForFunction(()=>document.activeElement?.tagName==='TEXTAREA');await m.locator('.sheet-mounted').waitFor({state:'detached'});
     await m.keyboard.insertText('手机编辑入口');await m.keyboard.press('Escape');await saved(m);
     assert.equal((await draft(m)).pages[0].scene.objects.at(-1).text,'手机编辑入口');

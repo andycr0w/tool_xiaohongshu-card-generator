@@ -50,9 +50,9 @@
   const labels = {bold:'加粗',italic:'斜体',underline:'下划线',raise:'上移一层',lower:'下移一层',editText:'编辑文字'};
   document.querySelectorAll('#propertiesPanel [data-action]').forEach(button => {
     const action = button.dataset.action;
-    if (icons[action]) decorate(button, action, labels[action] || button.textContent.trim(), (!!labels[action] && action !== 'editText'));
+    if (icons[action]) decorate(button, action, labels[action] || button.textContent.trim(), (action === 'deleteSelection' || (!!labels[action] && action !== 'editText')));
   });
-  document.querySelectorAll('[data-align]').forEach(button => decorate(button, button.dataset.align, button.textContent.trim(), false));
+  document.querySelectorAll('[data-align]').forEach(button => decorate(button, button.dataset.align, button.textContent.trim(), true));
   document.querySelectorAll('[data-text-align]').forEach(button => {
     const key = button.dataset.textAlign;
     decorate(button, 'text' + key[0].toUpperCase() + key.slice(1), button.getAttribute('aria-label'), true);
