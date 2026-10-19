@@ -43,7 +43,8 @@ function capture(){
 function historyButtons(){$('undo').disabled=historyIndex<=0;$('redo').disabled=historyIndex>=history.length-1;}
 function commit(){
  if(loading)return;
- capture();const snapshot=JSON.stringify(doc);
+ // The viewed page is navigation state, not part of the artwork's undo history.
+ capture();const snapshot=JSON.stringify({...doc,current:undefined});
  if(history[historyIndex]!==snapshot){history.splice(historyIndex+1);history.push(snapshot);while(history.length>2&&(history.length>50||history.reduce((n,s)=>n+s.length,0)>32*1024*1024))history.shift();historyIndex=history.length-1;}
  liveDirty=false;
  historyButtons();scheduleSave();refreshThumbnail();updateProperties();
@@ -115,7 +116,16 @@ async function newPage(template){
  if(template){const t=CardTemplates.make(template,p.width,p.height);canvas.add(...t.objects);p.background=t.background;await setBackground(canvas,p);}
  });commit();closePanels();
 }
-async function undo(delta){if(loading||historyIndex+delta<0||historyIndex+delta>=history.length)return;exitText();await busy(async()=>{historyIndex+=delta;doc=JSON.parse(history[historyIndex]);thumbs.clear();await loadPage();await regenerateThumbnails();});historyButtons();scheduleSave();}
+async function undo(delta){
+ if(loading||historyIndex+delta<0||historyIndex+delta>=history.length)return;
+ exitText();const currentId=page().id,currentIndex=doc.current;
+ await busy(async()=>{
+  historyIndex+=delta;doc=JSON.parse(history[historyIndex]);
+  const index=doc.pages.findIndex(p=>p.id===currentId);
+  doc.current=index<0?Math.min(currentIndex,doc.pages.length-1):index;
+  thumbs.clear();await loadPage();await regenerateThumbnails();
+ });historyButtons();scheduleSave();
+}
 async function regenerateThumbnails(){for(const p of doc.pages){if(thumbs.has(p.id))continue;const out=await renderPage(p,80/p.width);thumbs.set(p.id,out.toDataURL());}renderPages();}
 function addObject(o){canvas.add(o);canvas.setActiveObject(o);o.setCoords();commit();closePanels();}
 function addText(heading){const p=page();addObject(new F.Textbox(heading?'写下你的标题':'在这里写下你的想法\n双击文字，自由编辑',{left:p.width*.1,top:p.height*.25,width:p.width*.75,fontSize:heading?80:40,fontWeight:heading?700:400,lineHeight:1.35,fontFamily:'Microsoft YaHei',fill:'#252735',splitByGrapheme:true}));}
