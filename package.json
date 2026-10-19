@@ -3,7 +3,8 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
-    "test": "node tests/editor.spec.cjs && node tests/toolbar.spec.cjs && node tests/panels.spec.cjs && node tests/workspace.spec.cjs",
+    "test": "node tests/editor.spec.cjs && node tests/toolbar.spec.cjs && node tests/panels.spec.cjs && node tests/workspace.spec.cjs && node tests/snapping.spec.cjs",
+    "test:snapping": "node tests/snapping.spec.cjs",
     "test:toolbar": "node tests/toolbar.spec.cjs",
     "test:panels": "node tests/panels.spec.cjs",
     "test:workspace": "node tests/workspace.spec.cjs"

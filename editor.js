@@ -13,6 +13,8 @@ let doc={version:1,name:'我的图文笔记',current:0,pages:[blank()]};
 let history=[],historyIndex=-1,loading=false,zoom=.4,autoFit=true,multi=false,saveTimer,textTimer,db=null;
 let selectedRange=null,clipboard=null,thumbs=new Map(),guides=[],cropTarget=null,cropBox=null,saveFailed=false;
 let persistedSnapshot='',saveSequence=0,liveDirty=false;
+let snapSession=null;
+const SNAP_ENTER_PX=3,SNAP_RELEASE_PX=5;
 const backgrounds=[
  {name:'纯白',kind:'solid',color:'#ffffff'},
  {name:'莓果',kind:'solid',color:'#fff2f5'},
@@ -78,6 +80,7 @@ async function setBackground(target,p){
 }
 function sceneOnly(p){return {version:F.version,objects:p.scene.objects||[]};}
 async function loadPage(){
+ resetSnap();
  selectedRange=null;canvas.discardActiveObject();await canvas.loadFromJSON(sceneOnly(page()));await setBackground(canvas,page());
  canvas.getObjects().forEach(o=>applyLock(o,!!o.locked));
  $('canvasSize').value=page().width+','+page().height;$('documentName').value=doc.name;
@@ -85,7 +88,7 @@ async function loadPage(){
  if(autoFit)fit();else setZoom(zoom);
  refreshThumbnail();renderPages();updateProperties();
 }
-function setZoom(value){zoom=Math.max(.08,Math.min(2,value));canvas.setDimensions({width:Math.round(page().width*zoom),height:Math.round(page().height*zoom)});canvas.setViewportTransform([zoom,0,0,zoom,0,0]);const menu=$('zoomLabel');menu.options[0].textContent='适应窗口'+(autoFit?' · '+Math.round(zoom*100)+'%':'');menu.options[5].textContent=Math.round(zoom*100)+'%';menu.value=autoFit?'fit':[.5,.75,1,1.5].includes(zoom)?String(zoom):'custom';canvas.calcOffset();}
+function setZoom(value){resetSnap();zoom=Math.max(.08,Math.min(2,value));canvas.setDimensions({width:Math.round(page().width*zoom),height:Math.round(page().height*zoom)});canvas.setViewportTransform([zoom,0,0,zoom,0,0]);const menu=$('zoomLabel');menu.options[0].textContent='适应窗口'+(autoFit?' · '+Math.round(zoom*100)+'%':'');menu.options[5].textContent=Math.round(zoom*100)+'%';menu.value=autoFit?'fit':[.5,.75,1,1.5].includes(zoom)?String(zoom):'custom';canvas.calcOffset();}
 function fit(){autoFit=true;const el=$('stage'),style=getComputedStyle(el);setZoom(Math.min((el.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight))/page().width,(el.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom))/page().height,1));}
 function closePanels(options){SheetUI.close(options);}
 function showTab(tab){['elements','templates','backgrounds'].forEach(t=>{$(t+'Tab').hidden=t!==tab;document.querySelector('[data-tab="'+t+'"]').setAttribute('aria-selected',String(t===tab));});}
@@ -156,6 +159,7 @@ function updateProperties(){
  $('objectX').value=Math.round(o.left);$('objectY').value=Math.round(o.top);$('objectWidth').value=Math.round(o.width*o.scaleX);$('objectHeight').value=Math.round(o.height*o.scaleY);$('objectAngle').value=o.angle;$('objectOpacity').value=Math.round(o.opacity*100);
  $('objectHeight').disabled=t;$('textSizeHint').hidden=!t;
  $('selectionHint').textContent=o.locked?'元素已锁定，可在属性或图层中解锁':t?'双击编辑文字 · 拖动两侧调整换行':selection?'多选后可组合、对齐或一起移动':'拖动角点缩放 · 顶部手柄旋转';
+ if(!o.locked)$('selectionHint').textContent+=' · Alt 拖动暂不吸附';
  if(t){$('fontFamily').value=currentTextStyle(o,'fontFamily');$('fontSize').value=currentTextStyle(o,'fontSize');$('textColor').value=currentTextStyle(o,'fill');document.querySelectorAll('[data-text-align]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.textAlign===o.textAlign)));$('lineHeight').value=o.lineHeight;
  $('boldButton').setAttribute('aria-pressed',String(['bold',700,800,900].includes(currentTextStyle(o,'fontWeight'))));$('italicButton').setAttribute('aria-pressed',String(currentTextStyle(o,'fontStyle')==='italic'));$('underlineButton').setAttribute('aria-pressed',String(!!currentTextStyle(o,'underline')));}
  else if(!image&&typeof o.fill==='string')$('shapeColor').value=o.fill;
@@ -245,22 +249,66 @@ function toggleSelection(target){
  if(objects.length)canvas.setActiveObject(objects.length===1?objects[0]:new F.ActiveSelection(objects,{canvas}));
  canvas.requestRenderAll();updateProperties();
 }
-function snap(o){
- guides=[];if(o.locked)return;const r=o.getBoundingRect(),threshold=6/zoom;
+function clearSnapLocks(){
+ if(snapSession){snapSession.x=null;snapSession.y=null;}
+ const hadGuides=guides.length;guides=[];if(hadGuides)canvas.requestRenderAll();
+}
+function resetSnap(){clearSnapLocks();snapSession=null;}
+function beginSnap(o){
+ resetSnap();if(o.locked)return;
  const xs=[0,page().width/2,page().width],ys=[0,page().height/2,page().height];
- canvas.getObjects().filter(x=>x!==o&&!canvas.getActiveObjects().includes(x)&&x.visible).forEach(x=>{const b=x.getBoundingRect();xs.push(b.left,b.left+b.width/2,b.left+b.width);ys.push(b.top,b.top+b.height/2,b.top+b.height);});
- let bestX=threshold,bestY=threshold,dx=0,dy=0,gx,gy;
- [r.left,r.left+r.width/2,r.left+r.width].forEach(x=>xs.forEach(t=>{if(Math.abs(t-x)<bestX){bestX=Math.abs(t-x);dx=t-x;gx=t;}}));
- [r.top,r.top+r.height/2,r.top+r.height].forEach(y=>ys.forEach(t=>{if(Math.abs(t-y)<bestY){bestY=Math.abs(t-y);dy=t-y;gy=t;}}));
- o.set({left:o.left+dx,top:o.top+dy});if(gx!==undefined)guides.push(['x',gx]);if(gy!==undefined)guides.push(['y',gy]);
+ const selected=new Set(canvas.getActiveObjects());
+ canvas.getObjects().filter(x=>x!==o&&!selected.has(x)&&x.visible).forEach(x=>{
+  x.setCoords();const b=x.getBoundingRect();
+  xs.push(b.left,b.left+b.width/2,b.left+b.width);ys.push(b.top,b.top+b.height/2,b.top+b.height);
+ });
+ snapSession={target:o,xs:[...new Set(xs)],ys:[...new Set(ys)],x:null,y:null};
+}
+function snapAxis(anchors,targets,axis){
+ const held=snapSession[axis];
+ if(held){
+  const delta=held.line-anchors[held.anchor];
+  if(Math.abs(delta)*zoom<=SNAP_RELEASE_PX+1e-9)return delta;
+  // Releasing a line must give control back to the pointer for this frame.
+  snapSession[axis]=null;return 0;
+ }
+ let best=SNAP_ENTER_PX/zoom,match=null;
+ // Candidates start with the artboard, so exact ties have a stable priority.
+ targets.forEach(line=>anchors.forEach((value,anchor)=>{
+  const distance=Math.abs(line-value);
+  if(distance*zoom<=SNAP_ENTER_PX+1e-9&&(!match||distance<best-1e-9)){best=distance;match={line,anchor};}
+ }));
+ snapSession[axis]=match;return match?match.line-anchors[match.anchor]:0;
+}
+function snap(o,e){
+ guides=[];if(!snapSession||snapSession.target!==o||o.locked)return;
+ if(e?.altKey){clearSnapLocks();return;}
+ // Fabric's drag handler has already restored left/top from the current pointer
+ // and its original grab offset, but aCoords still describes the previous frame.
+ o.setCoords();const r=o.getBoundingRect();
+ const dx=o.lockMovementX?0:snapAxis([r.left,r.left+r.width/2,r.left+r.width],snapSession.xs,'x');
+ const dy=o.lockMovementY?0:snapAxis([r.top,r.top+r.height/2,r.top+r.height],snapSession.ys,'y');
+ o.set({left:o.left+dx,top:o.top+dy});o.setCoords();
+ if(snapSession.x&&!o.lockMovementX)guides.push(['x',snapSession.x.line]);
+ if(snapSession.y&&!o.lockMovementY)guides.push(['y',snapSession.y.line]);
 }
 canvas.on('after:render',()=>{if(!guides.length)return;const c=canvas.getContext();c.save();c.strokeStyle='#df3d60';c.lineWidth=1;c.setLineDash([4,4]);guides.forEach(([axis,v])=>{c.beginPath();if(axis==='x'){c.moveTo(v*zoom,0);c.lineTo(v*zoom,canvas.height);}else{c.moveTo(0,v*zoom);c.lineTo(canvas.width,v*zoom);}c.stroke();});c.restore();});
-canvas.on('object:moving',({target,e})=>{liveDirty=true;if(!e?.altKey)snap(target);});
+canvas.on('before:transform',({transform})=>{resetSnap();if(transform.action==='drag')beginSnap(transform.target);});
+canvas.on('object:moving',({target,e})=>{liveDirty=true;snap(target,e);});
 canvas.on('object:scaling',()=>{liveDirty=true;});
 canvas.on('object:rotating',()=>{liveDirty=true;});
-canvas.on('object:modified',()=>{guides=[];canvas.requestRenderAll();commit();});
-canvas.on('mouse:up',()=>{guides=[];canvas.requestRenderAll();});
-['selection:created','selection:updated','selection:cleared'].forEach(event=>canvas.on(event,()=>{selectedRange=null;updateProperties();}));
+canvas.on('object:modified',()=>{
+ resetSnap();canvas.requestRenderAll();
+ // capture() temporarily discards ActiveSelection. Wait until Fabric has ended
+ // its transform, otherwise discardActiveObject can finalize the same drag again.
+ queueMicrotask(commit);
+});
+canvas.on('mouse:up',resetSnap);
+['selection:created','selection:updated','selection:cleared'].forEach(event=>canvas.on(event,()=>{resetSnap();selectedRange=null;updateProperties();}));
+document.addEventListener('keydown',e=>{if(e.key==='Alt')clearSnapLocks();});
+window.addEventListener('blur',resetSnap);
+document.addEventListener('touchcancel',resetSnap,{capture:true});
+document.addEventListener('pointercancel',resetSnap,{capture:true});
 canvas.on('text:selection:changed',({target})=>{selectedRange={object:target,start:target.selectionStart,end:target.selectionEnd};updateProperties();});
 canvas.on('text:changed',()=>{liveDirty=true;clearTimeout(textTimer);textTimer=setTimeout(commit,350);});
 canvas.on('text:editing:exited',()=>{clearTimeout(textTimer);commit();});
@@ -276,6 +324,7 @@ let pinch=null;
 const distance=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
 $('artboard').addEventListener('touchstart',e=>{
  if(e.touches.length!==2)return;e.preventDefault();e.stopImmediatePropagation();
+ resetSnap();
  // End any one-finger transform before starting the view gesture.
  if(canvas._currentTransform){canvas.endCurrentTransform(e);}
  pinch={distance:distance(e.touches),zoom,x:(e.touches[0].clientX+e.touches[1].clientX)/2,y:(e.touches[0].clientY+e.touches[1].clientY)/2,left:$('stage').scrollLeft,top:$('stage').scrollTop};

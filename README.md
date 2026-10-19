@@ -22,6 +22,7 @@
 | 快速复制 | Ctrl / ⌘ D |
 | 组合 / 拆分 | Ctrl / ⌘ G；Ctrl / ⌘ Shift G |
 | 微调位置 | 方向键 1 px；Shift + 方向键 10 px |
+| 临时关闭自动吸附 | 按住 Alt 拖动元素 |
 | 删除元素 | Delete / Backspace |
 | 缩放视图 | Ctrl / ⌘ + 滚轮；顶部 − / ＋ |
 | 取消选择 | Esc |
